@@ -15,8 +15,7 @@ class AboutPage extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(20),
           child: Text(
-            'Aplikasi Kasir ini dibuat menggunakan Flutter.\n\n'
-            'Versi: 1.0.0\nDikembangkan oleh: Nama Kamu',
+            'Dikembangkan oleh: Fazhari Rizky',
             style: TextStyle(fontSize: 18),
             textAlign: TextAlign.center,
           ),
