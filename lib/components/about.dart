@@ -10,6 +10,7 @@ class AboutPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Tentang Aplikasi'),
         backgroundColor: Colors.blue.shade700,
+        foregroundColor:Colors.white,
       ),
       body: const Center(
         child: Padding(

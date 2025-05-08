@@ -13,22 +13,40 @@ class StokMasukPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Stok Masuk'),
+        title: const Text('Riwayat Stok Masuk'),
         backgroundColor: Colors.blue.shade700,
+        foregroundColor:Colors.white,
+        elevation: 2,
       ),
-      body: ListView.builder(
-        itemCount: stokList.length,
-        itemBuilder: (context, index) {
-          final item = stokList[index];
-          return ListTile(
-            leading: const Icon(Icons.add_shopping_cart),
-            title: Text(item['produk']),
-            subtitle: Text(
-              'Jumlah: ${item['jumlah']} \nTanggal: ${item['tanggal']}',
-            ),
-            isThreeLine: true,
-          );
-        },
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView.builder(
+          itemCount: stokList.length,
+          itemBuilder: (context, index) {
+            final item = stokList[index];
+            return Card(
+              elevation: 3,
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(
+                  item['produk'],
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  'Jumlah: ${item['jumlah']}\nTanggal: ${item['tanggal']}',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                ),
+                isThreeLine: true,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

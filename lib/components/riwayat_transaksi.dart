@@ -15,6 +15,7 @@ class RiwayatTransaksiPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Riwayat Transaksi'),
         backgroundColor: Colors.blue.shade700,
+        foregroundColor:Colors.white,
       ),
       body: ListView.builder(
         itemCount: transaksiList.length,
