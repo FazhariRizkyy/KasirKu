@@ -5,32 +5,32 @@ class DataProdukPage extends StatefulWidget {
   const DataProdukPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _DataProdukPageState createState() => _DataProdukPageState();
 }
 
 class _DataProdukPageState extends State<DataProdukPage> {
   final List<Map<String, dynamic>> _produkList = [
     {
-      'nama': 'Beras 5kg',
-      'harga': 65000,
+      'nama': 'Nabati',
+      'harga': 5000,
       'stok': 25,
       'foto': 'https://via.placeholder.com/150',
     },
     {
-      'nama': 'Minyak 1L',
-      'harga': 15000,
+      'nama': 'Nutrisari Jeruk Nipis',
+      'harga': 5000,
       'stok': 40,
       'foto': 'https://via.placeholder.com/150',
     },
     {
-      'nama': 'Gula 1kg',
-      'harga': 13000,
+      'nama': 'Permen Kopiko',
+      'harga': 500,
       'stok': 30,
       'foto': 'https://via.placeholder.com/150',
     },
   ];
 
-  String _searchQuery = '';
   List<Map<String, dynamic>> _filteredProdukList = [];
 
   @override
@@ -41,14 +41,17 @@ class _DataProdukPageState extends State<DataProdukPage> {
 
   void _filterProduk(String query) {
     setState(() {
-      _searchQuery = query;
       if (query.isEmpty) {
         _filteredProdukList = _produkList;
       } else {
-        _filteredProdukList = _produkList
-            .where((produk) =>
-                produk['nama'].toLowerCase().contains(query.toLowerCase()))
-            .toList();
+        _filteredProdukList =
+            _produkList
+                .where(
+                  (produk) => produk['nama'].toLowerCase().contains(
+                    query.toLowerCase(),
+                  ),
+                )
+                .toList();
       }
     });
   }
@@ -86,78 +89,83 @@ class _DataProdukPageState extends State<DataProdukPage> {
           ),
           // List Produk
           Expanded(
-            child: _filteredProdukList.isEmpty
-                ? const Center(child: Text('Produk tidak ditemukan'))
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    itemCount: _filteredProdukList.length,
-                    itemBuilder: (context, index) {
-                      final item = _filteredProdukList[index];
-                      return Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Foto Produk
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  item['foto'],
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
+            child:
+                _filteredProdukList.isEmpty
+                    ? const Center(child: Text('Produk tidak ditemukan'))
+                    : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      itemCount: _filteredProdukList.length,
+                      itemBuilder: (context, index) {
+                        final item = _filteredProdukList[index];
+                        return Card(
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Foto Produk
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    item['foto'],
                                     width: 80,
                                     height: 80,
-                                    color: Colors.grey.shade300,
-                                    child: const Icon(Icons.image_not_supported),
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              width: 80,
+                                              height: 80,
+                                              color: Colors.grey.shade300,
+                                              child: const Icon(
+                                                Icons.image_not_supported,
+                                              ),
+                                            ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              // Informasi Produk
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item['nama'],
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                const SizedBox(width: 16),
+                                // Informasi Produk
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['nama'],
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Harga: Rp ${item['harga'].toString()}',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade700,
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Harga: Rp ${item['harga'].toString()}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade700,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      'Stok: ${item['stok']}',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade700,
+                                      Text(
+                                        'Stok: ${item['stok']}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade700,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
@@ -169,10 +177,7 @@ class _DataProdukPageState extends State<DataProdukPage> {
           );
         },
         backgroundColor: Colors.blue.shade700,
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
