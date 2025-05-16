@@ -1,42 +1,33 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pos_app/components/tambah_data.dart';
+import '../database/database_helper.dart';
+import 'package:pos_app/models/product.dart';
 
 class DataProdukPage extends StatefulWidget {
   const DataProdukPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _DataProdukPageState createState() => _DataProdukPageState();
 }
 
 class _DataProdukPageState extends State<DataProdukPage> {
-  final List<Map<String, dynamic>> _produkList = [
-    {
-      'nama': 'Nabati',
-      'harga': 5000,
-      'stok': 25,
-      'foto': 'https://via.placeholder.com/150',
-    },
-    {
-      'nama': 'Nutrisari Jeruk Nipis',
-      'harga': 5000,
-      'stok': 40,
-      'foto': 'https://via.placeholder.com/150',
-    },
-    {
-      'nama': 'Permen Kopiko',
-      'harga': 500,
-      'stok': 30,
-      'foto': 'https://via.placeholder.com/150',
-    },
-  ];
-
-  List<Map<String, dynamic>> _filteredProdukList = [];
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  List<Produk> _produkList = [];
+  List<Produk> _filteredProdukList = [];
 
   @override
   void initState() {
     super.initState();
-    _filteredProdukList = _produkList;
+    _loadProduk();
+  }
+
+  Future<void> _loadProduk() async {
+    final produk = await _dbHelper.getAllProduk();
+    setState(() {
+      _produkList = produk;
+      _filteredProdukList = produk;
+    });
   }
 
   void _filterProduk(String query) {
@@ -44,14 +35,9 @@ class _DataProdukPageState extends State<DataProdukPage> {
       if (query.isEmpty) {
         _filteredProdukList = _produkList;
       } else {
-        _filteredProdukList =
-            _produkList
-                .where(
-                  (produk) => produk['nama'].toLowerCase().contains(
-                    query.toLowerCase(),
-                  ),
-                )
-                .toList();
+        _filteredProdukList = _produkList
+            .where((produk) => produk.namaProduk.toLowerCase().contains(query.toLowerCase()))
+            .toList();
       }
     });
   }
@@ -66,7 +52,6 @@ class _DataProdukPageState extends State<DataProdukPage> {
       ),
       body: Column(
         children: [
-          // Search Bar
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -87,85 +72,112 @@ class _DataProdukPageState extends State<DataProdukPage> {
               ),
             ),
           ),
-          // List Produk
           Expanded(
-            child:
-                _filteredProdukList.isEmpty
-                    ? const Center(child: Text('Produk tidak ditemukan'))
-                    : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      itemCount: _filteredProdukList.length,
-                      itemBuilder: (context, index) {
-                        final item = _filteredProdukList[index];
-                        return Card(
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Foto Produk
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    item['foto'],
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                              width: 80,
-                                              height: 80,
-                                              color: Colors.grey.shade300,
-                                              child: const Icon(
-                                                Icons.image_not_supported,
-                                              ),
-                                            ),
-                                  ),
+            child: _filteredProdukList.isEmpty
+                ? const Center(child: Text('Produk tidak ditemukan'))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    itemCount: _filteredProdukList.length,
+                    itemBuilder: (context, index) {
+                      final produk = _filteredProdukList[index];
+                      return Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: produk.foto != null && File(produk.foto!).existsSync()
+                                    ? Image.file(
+                                        File(produk.foto!),
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          width: 80,
+                                          height: 80,
+                                          color: Colors.grey.shade300,
+                                          child: const Icon(Icons.image_not_supported),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: 80,
+                                        height: 80,
+                                        color: Colors.grey.shade300,
+                                        child: const Icon(Icons.image_not_supported),
+                                      ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      produk.namaProduk,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Harga: Rp ${produk.harga.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Stok: ${produk.stok}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Kategori: ${produk.kategori}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 16),
-                                // Informasi Produk
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['nama'],
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                              ),
+                              Column(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: Colors.blue),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TambahDataPage(produk: produk),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Harga: Rp ${item['harga'].toString()}',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Stok: ${item['stok']}',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ],
+                                      ).then((_) => _loadProduk());
+                                    },
                                   ),
-                                ),
-                              ],
-                            ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () async {
+                                      await _dbHelper.deleteProduk(produk.idProduk!);
+                                      _loadProduk();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -174,7 +186,7 @@ class _DataProdukPageState extends State<DataProdukPage> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const TambahDataPage()),
-          );
+          ).then((_) => _loadProduk());
         },
         backgroundColor: Colors.blue.shade700,
         child: const Icon(Icons.add, color: Colors.white),
