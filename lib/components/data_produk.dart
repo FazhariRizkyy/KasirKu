@@ -46,7 +46,7 @@ class _DataProdukPageState extends State<DataProdukPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Data Produk'),
+        title: const Text('Data Makanan & Minuman'),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
       ),

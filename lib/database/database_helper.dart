@@ -27,15 +27,29 @@ class DatabaseHelper {
   Future _createDB(Database db, int version) async {
     // Tabel Produk
     await db.execute('''
-  CREATE TABLE tabel_produk (
-    id_produk INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama_produk TEXT NOT NULL,
-    harga REAL NOT NULL,
-    stok INTEGER NOT NULL,
-    kategori TEXT NOT NULL,
-    foto TEXT
-  )
-''');
+    CREATE TABLE tabel_produk (
+      id_produk INTEGER PRIMARY KEY AUTOINCREMENT,
+      nama_produk TEXT NOT NULL,
+      harga REAL NOT NULL,
+      stok INTEGER NOT NULL,
+      kategori TEXT NOT NULL,
+      tanggal_masuk DATE,
+      foto TEXT
+      )
+    ''');
+
+    //Tabel Stok Masuk
+    await db.execute('''
+      CREATE TABLE tabel_stok_masuk (
+        id_stok INTEGER PRIMARY KEY,
+        id_produk INTEGER NOT NULL,
+        nama_produk TEXT NOT NULL,
+        harga REAL NOT NULL,
+        stok INTEGER NOT NULL,
+        tanggal_masuk TEXT NOT NULL,
+        FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
+      )
+    ''');
 
     // Tabel Transaksi
     await db.execute('''
@@ -72,7 +86,18 @@ class DatabaseHelper {
   // CRUD Operations untuk tabel_produk
   Future<int> createProduk(Produk produk) async {
     final db = await database;
-    return await db.insert('tabel_produk', produk.toMap());
+    final productId = await db.insert('tabel_produk', produk.toMap());
+
+    // Insert ke tabel_stok_masuk untuk mencatat riwayat stok masuk
+    await db.insert('tabel_stok_masuk', {
+      'id_produk': productId,
+      'nama_produk': produk.namaProduk,
+      'harga': produk.harga,
+      'stok': produk.stok,
+      'tanggal_masuk': DateTime.now().toIso8601String(), // Format tanggal
+    });
+
+    return productId;
   }
 
   Future<List<Produk>> getAllProduk() async {
@@ -108,6 +133,11 @@ class DatabaseHelper {
       where: 'id_produk = ?',
       whereArgs: [id],
     );
+  }
+
+  Future<List<Map<String, dynamic>>> getAllStokMasuk() async {
+    final db = await database;
+    return await db.query('tabel_stok_masuk', orderBy: 'tanggal_masuk DESC');
   }
 
   Future close() async {

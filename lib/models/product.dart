@@ -4,7 +4,7 @@ class Produk {
   double harga;
   int stok;
   String kategori;
-  String? foto; // Tambah kolom foto
+  String? foto;
 
   Produk({
     this.idProduk,

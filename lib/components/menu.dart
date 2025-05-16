@@ -16,7 +16,7 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   final List<_MenuItem> menuItems = [
-    _MenuItem(icon: Icons.inventory_2, label: 'Data Produk'),
+    _MenuItem(icon: Icons.inventory_2, label: 'Produk'),
     _MenuItem(icon: Icons.add_box, label: 'Stok Masuk'),
     _MenuItem(icon: Icons.bar_chart, label: 'Laporan Penjualan'),
     _MenuItem(icon: Icons.point_of_sale, label: 'Transaksi'),
@@ -55,7 +55,7 @@ class _MenuPageState extends State<MenuPage> {
     return InkWell(
       onTap: () {
         switch (item.label) {
-          case 'Data Produk':
+          case 'Produk':
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const DataProdukPage()),
