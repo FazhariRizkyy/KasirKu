@@ -53,34 +53,44 @@ class DatabaseHelper {
 
     // Tabel Transaksi
     await db.execute('''
-      CREATE TABLE tabel_transaksi (
-        id_transaksi INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_produk INTEGER NOT NULL,
-        nama_produk TEXT NOT NULL,
-        harga REAL NOT NULL,
-        stok INTEGER NOT NULL,
-        kategori TEXT NOT NULL,
-        total REAL NOT NULL,
-        FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
-      )
-    ''');
+    CREATE TABLE tabel_transaksi (
+      id_transaksi INTEGER PRIMARY KEY AUTOINCREMENT,
+      tanggal TEXT NOT NULL,
+      total REAL NOT NULL
+    )
+  ''');
+
+    // Tabel Detail Transaksi (baru: menyimpan item dalam transaksi)
+    await db.execute('''
+    CREATE TABLE tabel_detail_transaksi (
+      id_detail INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_transaksi INTEGER NOT NULL,
+      id_produk INTEGER NOT NULL,
+      nama_produk TEXT NOT NULL,
+      harga REAL NOT NULL,
+      jumlah INTEGER NOT NULL,
+      subtotal REAL NOT NULL,
+      FOREIGN KEY (id_transaksi) REFERENCES tabel_transaksi(id_transaksi),
+      FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
+    )
+  ''');
 
     // Tabel Laporan Penjualan
     await db.execute('''
-      CREATE TABLE tabel_laporan_penjualan (
-        id_laporan INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_transaksi INTEGER NOT NULL,
-        id_produk INTEGER NOT NULL,
-        nama_produk TEXT NOT NULL,
-        harga REAL NOT NULL,
-        stok INTEGER NOT NULL,
-        kategori TEXT NOT NULL,
-        tanggal TEXT NOT NULL,
-        total REAL NOT NULL,
-        FOREIGN KEY (id_transaksi) REFERENCES tabel_transaksi(id_transaksi),
-        FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
-      )
-    ''');
+    CREATE TABLE tabel_laporan_penjualan (
+      id_laporan INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_transaksi INTEGER NOT NULL,
+      id_produk INTEGER NOT NULL,
+      nama_produk TEXT NOT NULL,
+      harga REAL NOT NULL,
+      jumlah INTEGER NOT NULL,
+      kategori TEXT NOT NULL,
+      tanggal TEXT NOT NULL,
+      subtotal REAL NOT NULL,
+      FOREIGN KEY (id_transaksi) REFERENCES tabel_transaksi(id_transaksi),
+      FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
+    )
+  ''');
   }
 
   // CRUD Operations untuk tabel_produk

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-// Import package untuk PDF jika sudah digunakan, misalnya: pdf, printing
-
 class LaporanPenjualanPage extends StatefulWidget {
   const LaporanPenjualanPage({super.key});
 
