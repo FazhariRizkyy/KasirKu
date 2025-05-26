@@ -20,8 +20,6 @@ class _MenuPageState extends State<MenuPage> {
     _MenuItem(icon: Icons.add_box, label: 'Stok Masuk'),
     _MenuItem(icon: Icons.bar_chart, label: 'Laporan Penjualan'),
     _MenuItem(icon: Icons.point_of_sale, label: 'Transaksi'),
-    _MenuItem(icon: Icons.history, label: 'Riwayat Transaksi'),
-    _MenuItem(icon: Icons.info_outline, label: 'Tentang'),
   ];
 
   @override
@@ -79,21 +77,6 @@ class _MenuPageState extends State<MenuPage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const TransaksiPage()),
-            );
-            break;
-
-          case 'Riwayat Transaksi':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const RiwayatTransaksiPage(),
-              ),
-            );
-            break;
-          case 'Tentang': // ✅ Arahkan ke About
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AboutPage()),
             );
             break;
         }
