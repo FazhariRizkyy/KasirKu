@@ -1,11 +1,12 @@
 class Produk {
-  int? idProduk;
-  String namaProduk;
-  double hargaBeli; // Baru
-  double hargaJual; // Baru
-  int stok;
-  String kategori;
-  String? foto;
+  final int? idProduk;
+  final String namaProduk;
+  final double hargaBeli;
+  final double hargaJual;
+  final int stok;
+  final String kategori;
+  final DateTime? tanggalMasuk;
+  final String? foto;
 
   Produk({
     this.idProduk,
@@ -14,6 +15,7 @@ class Produk {
     required this.hargaJual,
     required this.stok,
     required this.kategori,
+    this.tanggalMasuk,
     this.foto,
   });
 
@@ -25,6 +27,7 @@ class Produk {
       'harga_jual': hargaJual,
       'stok': stok,
       'kategori': kategori,
+      'tanggal_masuk': tanggalMasuk?.toIso8601String(),
       'foto': foto,
     };
   }
@@ -33,10 +36,13 @@ class Produk {
     return Produk(
       idProduk: map['id_produk'],
       namaProduk: map['nama_produk'],
-      hargaBeli: map['harga_beli']?.toDouble() ?? 0.0,
-      hargaJual: map['harga_jual']?.toDouble() ?? map['harga']?.toDouble() ?? 0.0, // Kompatibilitas dengan data lama
+      hargaBeli: map['harga_beli'],
+      hargaJual: map['harga_jual'],
       stok: map['stok'],
       kategori: map['kategori'],
+      tanggalMasuk: map['tanggal_masuk'] != null
+          ? DateTime.parse(map['tanggal_masuk'])
+          : null,
       foto: map['foto'],
     );
   }

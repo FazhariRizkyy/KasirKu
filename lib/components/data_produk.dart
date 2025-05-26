@@ -93,7 +93,7 @@ class _DataProdukPageState extends State<DataProdukPage> {
             child: _filteredProdukList.isEmpty
                 ? Center(
                     child: Text(
-                      'Produk tidak ditemukan',
+                      'Tidak ada Makanan & Minuman ditemukan',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         color: Colors.grey.shade600,

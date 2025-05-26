@@ -345,7 +345,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Harga: Rp ${item.hargaBeli.toStringAsFixed(0)}',
+                                  'Harga Jual: Rp ${item.hargaJual.toStringAsFixed(0)}',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey.shade700,
