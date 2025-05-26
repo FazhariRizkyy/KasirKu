@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pos_app/components/data_produk.dart';
 import 'package:pos_app/components/laporan_penjualan.dart';
 import 'package:pos_app/components/transaksi.dart';
-import 'package:pos_app/components/about.dart';
-import 'package:pos_app/components/riwayat_transaksi.dart';
 import 'package:pos_app/components/stok_masuk.dart';
 
 class MenuPage extends StatefulWidget {
