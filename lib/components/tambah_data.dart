@@ -17,12 +17,11 @@ class TambahDataPage extends StatefulWidget {
 class _TambahDataPageState extends State<TambahDataPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _namaController = TextEditingController();
-  final TextEditingController _hargaBeliController =
-      TextEditingController(); // Baru
-  final TextEditingController _hargaJualController =
-      TextEditingController(); // Baru
+  final TextEditingController _hargaBeliController = TextEditingController();
+  final TextEditingController _hargaJualController = TextEditingController();
   final TextEditingController _stokController = TextEditingController();
   String? _kategori = 'Makanan';
+  String? _satuan = 'Pcs'; // Default satuan
   File? _image;
   final ImagePicker _picker = ImagePicker();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -32,9 +31,10 @@ class _TambahDataPageState extends State<TambahDataPage> {
     super.initState();
     if (widget.produk != null) {
       _namaController.text = widget.produk!.namaProduk;
-      _hargaBeliController.text = widget.produk!.hargaBeli.toString(); // Baru
-      _hargaJualController.text = widget.produk!.hargaJual.toString(); // Baru
+      _hargaBeliController.text = widget.produk!.hargaBeli.toString();
+      _hargaJualController.text = widget.produk!.hargaJual.toString();
       _stokController.text = widget.produk!.stok.toString();
+      _satuan = widget.produk!.satuan;
       _kategori = widget.produk!.kategori;
       if (widget.produk!.foto != null) {
         _image = File(widget.produk!.foto!);
@@ -69,6 +69,7 @@ class _TambahDataPageState extends State<TambahDataPage> {
         hargaJual: hargaJual,
         stok: stok,
         kategori: _kategori!,
+        satuan: _satuan!,
         foto: _image?.path,
       );
 
@@ -109,43 +110,42 @@ class _TambahDataPageState extends State<TambahDataPage> {
                       height: 180,
                       padding: const EdgeInsets.all(12),
                       alignment: Alignment.center,
-                      child:
-                          _image == null
-                              ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(
-                                    Icons.image_outlined,
-                                    size: 50,
+                      child: _image == null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.image_outlined,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Belum ada gambar dipilih',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  '(Tap untuk memilih gambar)',
+                                  style: TextStyle(
+                                    fontSize: 12,
                                     color: Colors.grey,
                                   ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Belum ada gambar dipilih',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '(Tap untuk memilih gambar)',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              )
-                              : ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.file(
-                                  _image!,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: 180,
                                 ),
+                              ],
+                            )
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(
+                                _image!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 180,
                               ),
+                            ),
                     ),
                   ),
                 ),
@@ -221,18 +221,42 @@ class _TambahDataPageState extends State<TambahDataPage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
+                  value: _satuan,
+                  decoration: InputDecoration(
+                    labelText: 'Satuan',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: ['Pcs', 'Dus', 'Pak', 'Porsi'].map((String satuan) {
+                    return DropdownMenuItem<String>(
+                      value: satuan,
+                      child: Text(satuan),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _satuan = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Satuan harus dipilih';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
                   value: _kategori,
                   decoration: InputDecoration(
                     labelText: 'Kategori',
                     border: OutlineInputBorder(),
                   ),
-                  items:
-                      ['Makanan', 'Minuman'].map((String category) {
-                        return DropdownMenuItem<String>(
-                          value: category,
-                          child: Text(category),
-                        );
-                      }).toList(),
+                  items: ['Makanan', 'Minuman'].map((String category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
                   onChanged: (String? newValue) {
                     setState(() {
                       _kategori = newValue;

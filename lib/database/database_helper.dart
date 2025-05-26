@@ -19,7 +19,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    return await openDatabase(path, version: 2, onCreate: _createDB, onUpgrade: _upgradeDB);
+    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   // Membuat tabel saat database dibuat
@@ -32,12 +32,13 @@ class DatabaseHelper {
       harga_jual REAL NOT NULL,
       stok INTEGER NOT NULL,
       kategori TEXT NOT NULL,
+      satuan TEXT NOT NULL,
       tanggal_masuk DATE,
       foto TEXT
     )
     ''');
 
-    //Tabel Stok Masuk
+    // Tabel Stok Masuk
     await db.execute('''
       CREATE TABLE tabel_stok_masuk (
         id_stok INTEGER PRIMARY KEY,
@@ -45,6 +46,7 @@ class DatabaseHelper {
         nama_produk TEXT NOT NULL,
         harga REAL NOT NULL,
         stok INTEGER NOT NULL,
+        satuan TEXT NOT NULL,
         tanggal_masuk TEXT NOT NULL,
         FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
       )
@@ -57,9 +59,9 @@ class DatabaseHelper {
       tanggal TEXT NOT NULL,
       total REAL NOT NULL
     )
-  ''');
+    ''');
 
-    // Tabel Detail Transaksi (baru: menyimpan item dalam transaksi)
+    // Tabel Detail Transaksi
     await db.execute('''
     CREATE TABLE tabel_detail_transaksi (
       id_detail INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,11 +71,12 @@ class DatabaseHelper {
       harga_jual REAL NOT NULL,
       harga_beli REAL NOT NULL,
       jumlah INTEGER NOT NULL,
+      satuan TEXT NOT NULL,
       subtotal REAL NOT NULL,
       FOREIGN KEY (id_transaksi) REFERENCES tabel_transaksi(id_transaksi),
       FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
     )
-  ''');
+    ''');
 
     // Tabel Laporan Penjualan
     await db.execute('''
@@ -85,24 +88,31 @@ class DatabaseHelper {
       harga REAL NOT NULL,
       jumlah INTEGER NOT NULL,
       kategori TEXT NOT NULL,
+      satuan TEXT NOT NULL,
       tanggal TEXT NOT NULL,
       subtotal REAL NOT NULL,
       FOREIGN KEY (id_transaksi) REFERENCES tabel_transaksi(id_transaksi),
       FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
     )
-  ''');
+    ''');
   }
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
-  if (oldVersion < 2) {
-    await db.execute('ALTER TABLE tabel_produk ADD harga_beli REAL NOT NULL DEFAULT 0.0');
-    await db.execute('ALTER TABLE tabel_produk ADD harga_jual REAL NOT NULL DEFAULT 0.0');
-    await db.execute('UPDATE tabel_produk SET harga_jual = harga WHERE harga_jual = 0.0');
-    await db.execute('ALTER TABLE tabel_laporan_penjualan ADD harga_beli REAL NOT NULL DEFAULT 0.0');
-    await db.execute('ALTER TABLE tabel_laporan_penjualan ADD harga_jual REAL NOT NULL DEFAULT 0.0');
-    await db.execute('UPDATE tabel_laporan_penjualan SET harga_jual = harga WHERE harga_jual = 0.0');
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE tabel_produk ADD harga_beli REAL NOT NULL DEFAULT 0.0');
+      await db.execute('ALTER TABLE tabel_produk ADD harga_jual REAL NOT NULL DEFAULT 0.0');
+      await db.execute('UPDATE tabel_produk SET harga_jual = harga WHERE harga_jual = 0.0');
+      await db.execute('ALTER TABLE tabel_laporan_penjualan ADD harga_beli REAL NOT NULL DEFAULT 0.0');
+      await db.execute('ALTER TABLE tabel_laporan_penjualan ADD harga_jual REAL NOT NULL DEFAULT 0.0');
+      await db.execute('UPDATE tabel_laporan_penjualan SET harga_jual = harga WHERE harga_jual = 0.0');
+    }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE tabel_produk ADD satuan TEXT NOT NULL DEFAULT "Unit"');
+      await db.execute('ALTER TABLE tabel_stok_masuk ADD satuan TEXT NOT NULL DEFAULT "Unit"');
+      await db.execute('ALTER TABLE tabel_detail_transaksi ADD satuan TEXT NOT NULL DEFAULT "Unit"');
+      await db.execute('ALTER TABLE tabel_laporan_penjualan ADD satuan TEXT NOT NULL DEFAULT "Unit"');
+    }
   }
-}
 
   // CRUD Operations untuk tabel_produk
   Future<int> createProduk(Produk produk) async {
@@ -114,6 +124,7 @@ class DatabaseHelper {
       'nama_produk': produk.namaProduk,
       'harga': produk.hargaBeli,
       'stok': produk.stok,
+      'satuan': produk.satuan,
       'tanggal_masuk': DateTime.now().toIso8601String(),
     });
 

@@ -5,6 +5,7 @@ class Produk {
   final double hargaJual;
   final int stok;
   final String kategori;
+  final String satuan;
   final DateTime? tanggalMasuk;
   final String? foto;
 
@@ -15,6 +16,7 @@ class Produk {
     required this.hargaJual,
     required this.stok,
     required this.kategori,
+    required this.satuan,
     this.tanggalMasuk,
     this.foto,
   });
@@ -27,6 +29,7 @@ class Produk {
       'harga_jual': hargaJual,
       'stok': stok,
       'kategori': kategori,
+      'satuan': satuan,
       'tanggal_masuk': tanggalMasuk?.toIso8601String(),
       'foto': foto,
     };
@@ -40,6 +43,7 @@ class Produk {
       hargaJual: map['harga_jual'],
       stok: map['stok'],
       kategori: map['kategori'],
+      satuan: map['satuan'] ?? 'Unit',
       tanggalMasuk: map['tanggal_masuk'] != null
           ? DateTime.parse(map['tanggal_masuk'])
           : null,

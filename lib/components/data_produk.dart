@@ -213,6 +213,11 @@ class _DataProdukPageState extends State<DataProdukPage> {
                                           color: Colors.grey.shade700,
                                         ),
                                         _buildInfoRow(
+                                          label: 'Satuan',
+                                          value: produk.satuan,
+                                          color: Colors.grey.shade700,
+                                        ),
+                                        _buildInfoRow(
                                           label: 'Kategori',
                                           value: produk.kategori,
                                           color: Colors.grey.shade700,
