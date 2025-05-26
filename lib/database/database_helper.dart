@@ -15,27 +15,26 @@ class DatabaseHelper {
     return _database!;
   }
 
-  // Inisialisasi database
   Future<Database> _initDB(String fileName) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(path, version: 2, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   // Membuat tabel saat database dibuat
   Future _createDB(Database db, int version) async {
-    // Tabel Produk
     await db.execute('''
     CREATE TABLE tabel_produk (
       id_produk INTEGER PRIMARY KEY AUTOINCREMENT,
       nama_produk TEXT NOT NULL,
-      harga REAL NOT NULL,
+      harga_beli REAL NOT NULL,
+      harga_jual REAL NOT NULL,
       stok INTEGER NOT NULL,
       kategori TEXT NOT NULL,
       tanggal_masuk DATE,
       foto TEXT
-      )
+    )
     ''');
 
     //Tabel Stok Masuk
@@ -93,18 +92,28 @@ class DatabaseHelper {
   ''');
   }
 
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+  if (oldVersion < 2) {
+    await db.execute('ALTER TABLE tabel_produk ADD harga_beli REAL NOT NULL DEFAULT 0.0');
+    await db.execute('ALTER TABLE tabel_produk ADD harga_jual REAL NOT NULL DEFAULT 0.0');
+    await db.execute('UPDATE tabel_produk SET harga_jual = harga WHERE harga_jual = 0.0');
+    await db.execute('ALTER TABLE tabel_laporan_penjualan ADD harga_beli REAL NOT NULL DEFAULT 0.0');
+    await db.execute('ALTER TABLE tabel_laporan_penjualan ADD harga_jual REAL NOT NULL DEFAULT 0.0');
+    await db.execute('UPDATE tabel_laporan_penjualan SET harga_jual = harga WHERE harga_jual = 0.0');
+  }
+}
+
   // CRUD Operations untuk tabel_produk
   Future<int> createProduk(Produk produk) async {
     final db = await database;
     final productId = await db.insert('tabel_produk', produk.toMap());
 
-    // Insert ke tabel_stok_masuk untuk mencatat riwayat stok masuk
     await db.insert('tabel_stok_masuk', {
       'id_produk': productId,
       'nama_produk': produk.namaProduk,
-      'harga': produk.harga,
+      'harga': produk.hargaBeli,
       'stok': produk.stok,
-      'tanggal_masuk': DateTime.now().toIso8601String(), // Format tanggal
+      'tanggal_masuk': DateTime.now().toIso8601String(),
     });
 
     return productId;

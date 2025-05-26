@@ -17,7 +17,10 @@ class TambahDataPage extends StatefulWidget {
 class _TambahDataPageState extends State<TambahDataPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _namaController = TextEditingController();
-  final TextEditingController _hargaController = TextEditingController();
+  final TextEditingController _hargaBeliController =
+      TextEditingController(); // Baru
+  final TextEditingController _hargaJualController =
+      TextEditingController(); // Baru
   final TextEditingController _stokController = TextEditingController();
   String? _kategori = 'Makanan';
   File? _image;
@@ -29,7 +32,8 @@ class _TambahDataPageState extends State<TambahDataPage> {
     super.initState();
     if (widget.produk != null) {
       _namaController.text = widget.produk!.namaProduk;
-      _hargaController.text = widget.produk!.harga.toString();
+      _hargaBeliController.text = widget.produk!.hargaBeli.toString(); // Baru
+      _hargaJualController.text = widget.produk!.hargaJual.toString(); // Baru
       _stokController.text = widget.produk!.stok.toString();
       _kategori = widget.produk!.kategori;
       if (widget.produk!.foto != null) {
@@ -54,13 +58,15 @@ class _TambahDataPageState extends State<TambahDataPage> {
   Future<void> _saveProduk() async {
     if (_formKey.currentState!.validate()) {
       final nama = _namaController.text;
-      final harga = double.tryParse(_hargaController.text) ?? 0.0;
+      final hargaBeli = double.tryParse(_hargaBeliController.text) ?? 0.0;
+      final hargaJual = double.tryParse(_hargaJualController.text) ?? 0.0;
       final stok = int.tryParse(_stokController.text) ?? 0;
 
       final produk = Produk(
         idProduk: widget.produk?.idProduk,
         namaProduk: nama,
-        harga: harga,
+        hargaBeli: hargaBeli,
+        hargaJual: hargaJual,
         stok: stok,
         kategori: _kategori!,
         foto: _image?.path,
@@ -159,19 +165,38 @@ class _TambahDataPageState extends State<TambahDataPage> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _hargaController,
+                  controller: _hargaBeliController,
                   decoration: InputDecoration(
-                    labelText: 'Harga',
+                    labelText: 'Harga Beli',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Harga tidak boleh kosong';
+                      return 'Harga beli tidak boleh kosong';
                     }
                     if (double.tryParse(value) == null ||
                         double.parse(value) <= 0) {
-                      return 'Harga harus berupa angka yang valid';
+                      return 'Harga beli harus berupa angka yang valid';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _hargaJualController,
+                  decoration: InputDecoration(
+                    labelText: 'Harga Jual',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Harga jual tidak boleh kosong';
+                    }
+                    if (double.tryParse(value) == null ||
+                        double.parse(value) <= 0) {
+                      return 'Harga jual harus berupa angka yang valid';
                     }
                     return null;
                   },
@@ -241,7 +266,8 @@ class _TambahDataPageState extends State<TambahDataPage> {
   @override
   void dispose() {
     _namaController.dispose();
-    _hargaController.dispose();
+    _hargaBeliController.dispose();
+    _hargaJualController.dispose();
     _stokController.dispose();
     super.dispose();
   }

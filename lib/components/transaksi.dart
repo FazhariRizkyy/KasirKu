@@ -62,7 +62,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
         _keranjang.add({
           'id_produk': produk.idProduk,
           'nama': produk.namaProduk,
-          'harga': produk.harga,
+          'harga': produk.hargaJual,
           'stok': produk.stok,
           'jumlah': 1,
         });
@@ -345,7 +345,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Harga: Rp ${item.harga.toStringAsFixed(0)}',
+                                  'Harga: Rp ${item.hargaBeli.toStringAsFixed(0)}',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey.shade700,
