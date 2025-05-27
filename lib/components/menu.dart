@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pos_app/components/data_produk.dart';
 import 'package:pos_app/components/laporan_penjualan.dart';
 import 'package:pos_app/components/transaksi.dart';
 import 'package:pos_app/components/stok_masuk.dart';
+import 'package:pos_app/components/about.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key, required this.title});
@@ -14,30 +16,49 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   final List<_MenuItem> menuItems = [
-    _MenuItem(icon: Icons.inventory_2, label: 'Produk'),
-    _MenuItem(icon: Icons.add_box, label: 'Stok Masuk'),
-    _MenuItem(icon: Icons.bar_chart, label: 'Laporan Penjualan'),
-    _MenuItem(icon: Icons.point_of_sale, label: 'Transaksi'),
+    _MenuItem(icon: Icons.inventory_2, label: 'Produk', route: const DataProdukPage()),
+    _MenuItem(icon: Icons.add_box, label: 'Stok Masuk', route: const StokMasukPage()),
+    _MenuItem(icon: Icons.bar_chart, label: 'Laporan Penjualan', route: const LaporanPenjualanPage()),
+    _MenuItem(icon: Icons.point_of_sale, label: 'Transaksi', route: const TransaksiPage()),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: const Color.fromARGB(255, 219, 234, 255),
       appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(color: Colors.white)),
+        title: Text(
+          widget.title,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade700,
-        elevation: 4,
+        backgroundColor: Colors.blue.shade800,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutPage()), // Navigasi ke about.dart
+              );
+            },
+            tooltip: 'About',
+          ),
+        ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         child: GridView.builder(
           itemCount: menuItems.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 20,
-            mainAxisSpacing: 20,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.0, // Membuat card lebih persegi
           ),
           itemBuilder: (context, index) {
             return _buildMenuCard(menuItems[index]);
@@ -48,67 +69,51 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   Widget _buildMenuCard(_MenuItem item) {
-    return InkWell(
+    return GestureDetector(
       onTap: () {
-        switch (item.label) {
-          case 'Produk':
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const DataProdukPage()),
-            );
-            break;
-          case 'Stok Masuk':
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const StokMasukPage()),
-            );
-            break;
-          case 'Laporan Penjualan':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const LaporanPenjualanPage(),
-              ),
-            );
-            break;
-          case 'Transaksi':
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const TransaksiPage()),
-            );
-            break;
-        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => item.route),
+        );
       },
-      borderRadius: BorderRadius.circular(16),
-      child: Ink(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF2196F3), Color(0xFF64B5F6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
+              color: Colors.grey.withOpacity(0.2),
               spreadRadius: 2,
               blurRadius: 8,
-              offset: const Offset(0, 4),
+              offset: const Offset(4, 4), // Neumorphism shadow
+            ),
+            BoxShadow(
+              color: Colors.white.withOpacity(0.8),
+              spreadRadius: -2,
+              blurRadius: 8,
+              offset: const Offset(-4, -4), // Neumorphism highlight
             ),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(item.icon, size: 50, color: Colors.white),
+            Icon(
+              item.icon,
+              size: 48,
+              color: Colors.blue.shade600,
+            ),
             const SizedBox(height: 12),
             Text(
               item.label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 17,
+              style: GoogleFonts.poppins(
+                color: Colors.blue.shade900,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -120,6 +125,7 @@ class _MenuPageState extends State<MenuPage> {
 class _MenuItem {
   final IconData icon;
   final String label;
+  final Widget route;
 
-  _MenuItem({required this.icon, required this.label});
+  _MenuItem({required this.icon, required this.label, required this.route});
 }

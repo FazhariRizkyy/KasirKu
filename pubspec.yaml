@@ -74,7 +74,9 @@ flutter:
   assets:
     - assets/images/splash-removebg-preview.png
     - assets/images/KasirKu.png
+    - assets/images/GW-TUH.jpg
     - assets/images/KasirKu-Icon.png
+    - assets/images/KasirKu-Rezize.png
     - assets/animation/Animasi-1.json
     - assets/animation/Animasi-2.json
     - assets/animation/Animasi-3.json
