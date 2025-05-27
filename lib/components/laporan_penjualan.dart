@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pos_app/database/database_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:pdf/pdf.dart'; // Tambahkan import ini
+import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
 class LaporanPenjualanPage extends StatefulWidget {
@@ -15,9 +16,9 @@ class LaporanPenjualanPage extends StatefulWidget {
 class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   List<Map<String, dynamic>> _laporanList = [];
-  String _selectedPeriod = 'Harian'; // Default filter
+  String _selectedPeriod = 'Harian';
   final List<String> _periods = ['Harian', 'Mingguan', 'Bulanan'];
-  final DateFormat _dateFormat = DateFormat('dd-MM-yyyy HH:mm');
+  final DateFormat _dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
   @override
   void initState() {
@@ -25,7 +26,6 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
     _fetchLaporan();
   }
 
-  // Ambil data laporan dari tabel_laporan_penjualan
   Future<void> _fetchLaporan() async {
     final db = await _dbHelper.database;
     String query = 'SELECT * FROM tabel_laporan_penjualan';
@@ -54,75 +54,65 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
     });
   }
 
-  // Hitung total pendapatan
   double _hitungTotalPendapatan() {
     return _laporanList.fold(
       0,
-      (sum, item) => sum + item['subtotal'] as double,
+      (sum, item) => sum + (item['subtotal'] as num).toDouble(),
     );
   }
 
-  // Buat PDF untuk laporan
   Future<void> _generatePdf() async {
     final pdf = pw.Document();
-    final dateFormat = DateFormat('dd-MM-yyyy HH:mm');
+    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
     pdf.addPage(
       pw.MultiPage(
-        pageFormat:
-            PdfPageFormat
-                .a4, // Ubah dari pw.PdfPageFormat menjadi PdfPageFormat
+        pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        build:
-            (pw.Context context) => [
-              pw.Header(
-                level: 0,
-                child: pw.Text(
-                  'Laporan Penjualan - $_selectedPeriod',
-                  style: pw.TextStyle(
-                    fontSize: 20,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
+        build: (pw.Context context) => [
+          pw.Header(
+            level: 0,
+            child: pw.Text(
+              'Laporan Penjualan - $_selectedPeriod',
+              style: pw.TextStyle(
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
               ),
-              pw.SizedBox(height: 20),
-              pw.Table.fromTextArray(
-                headers: [
-                  'ID Transaksi',
-                  'Produk',
-                  'Kategori',
-                  'Harga',
-                  'Jumlah',
-                  'Subtotal',
-                  'Tanggal',
-                ],
-                data:
-                    _laporanList
-                        .map(
-                          (item) => [
-                            item['id_transaksi'].toString(),
-                            item['nama_produk'],
-                            item['kategori'],
-                            'Rp ${item['harga'].toStringAsFixed(0)}',
-                            item['jumlah'].toString(),
-                            'Rp ${item['subtotal'].toStringAsFixed(0)}',
-                            dateFormat.format(DateTime.parse(item['tanggal'])),
-                          ],
-                        )
-                        .toList(),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                cellAlignment: pw.Alignment.centerLeft,
-                cellStyle: const pw.TextStyle(fontSize: 12),
-              ),
-              pw.SizedBox(height: 20),
-              pw.Text(
-                'Total Pendapatan: Rp ${_hitungTotalPendapatan().toStringAsFixed(0)}',
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
+            ),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Table.fromTextArray(
+            headers: [
+              'ID Transaksi',
+              'Produk',
+              'Kategori',
+              'Harga',
+              'Jumlah',
+              'Subtotal',
+              'Tanggal',
             ],
+            data: _laporanList.map((item) => [
+                  item['id_transaksi'].toString(),
+                  item['nama_produk'],
+                  item['kategori'],
+                  'Rp ${item['harga'].toStringAsFixed(0)}',
+                  item['jumlah'].toString(),
+                  'Rp ${item['subtotal'].toStringAsFixed(0)}',
+                  dateFormat.format(DateTime.parse(item['tanggal'])),
+                ]).toList(),
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            cellAlignment: pw.Alignment.centerLeft,
+            cellStyle: const pw.TextStyle(fontSize: 12),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Text(
+            'Total Pendapatan: Rp ${_hitungTotalPendapatan().toStringAsFixed(0)}',
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
 
@@ -136,116 +126,295 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Laporan Penjualan'),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Laporan Penjualan',
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.blue[700]!, Colors.blue[500]!],
+            ),
+          ),
+        ),
+        elevation: 4,
       ),
-      body: Column(
-        children: [
-          // Dropdown untuk filter periode
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: DropdownButton<String>(
-              value: _selectedPeriod,
-              isExpanded: true,
-              items:
-                  _periods.map((String period) {
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue[50]!, Colors.white],
+          ),
+        ),
+        child: Column(
+          children: [
+            // Dropdown untuk filter periode
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: DropdownButton<String>(
+                  value: _selectedPeriod,
+                  isExpanded: true,
+                  items: _periods.map((String period) {
                     return DropdownMenuItem<String>(
                       value: period,
-                      child: Text(period),
+                      child: Text(
+                        period,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
                     );
                   }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedPeriod = newValue!;
-                  _fetchLaporan();
-                });
-              },
-              style: const TextStyle(fontSize: 16, color: Colors.black),
-              underline: Container(height: 2, color: Colors.blue.shade700),
-            ),
-          ),
-          // Total Pendapatan
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total Pendapatan:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Rp ${_hitungTotalPendapatan().toStringAsFixed(0)}',
-                  style: const TextStyle(
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedPeriod = newValue!;
+                      _fetchLaporan();
+                    });
+                  },
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  underline: const SizedBox(),
+                  icon: Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.blue[700],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-          // Daftar Laporan
-          Expanded(
-            child:
-                _laporanList.isEmpty
-                    ? const Center(
-                      child: Text('Tidak ada data laporan untuk periode ini'),
+            // Total Pendapatan
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total Pendapatan:',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      'Rp ${_hitungTotalPendapatan().toStringAsFixed(0)}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Daftar Laporan
+            Expanded(
+              child: _laporanList.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Tidak ada data laporan untuk periode ini',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black54,
+                        ),
+                      ),
                     )
-                    : ListView.builder(
+                  : ListView.builder(
                       padding: const EdgeInsets.all(16.0),
                       itemCount: _laporanList.length,
                       itemBuilder: (context, index) {
                         final item = _laporanList[index];
-                        return Card(
-                          elevation: 3,
-                          margin: const EdgeInsets.only(bottom: 16.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Transaksi #${item['id_transaksi']}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text('Produk: ${item['nama_produk']}'),
-                                Text('Kategori: ${item['kategori']}'),
-                                Text(
-                                  'Harga: Rp ${item['harga'].toStringAsFixed(0)}',
-                                ),
-                                Text('Jumlah: ${item['jumlah']}'),
-                                Text(
-                                  'Subtotal: Rp ${item['subtotal'].toStringAsFixed(0)}',
-                                ),
-                                Text(
-                                  'Tanggal: ${_dateFormat.format(DateTime.parse(item['tanggal']))}',
-                                ),
-                              ],
-                            ),
-                          ),
+                        return AnimatedOpacity(
+                          opacity: 1.0,
+                          duration: const Duration(milliseconds: 300),
+                          child: StrukCard(item: item, dateFormat: _dateFormat),
                         );
                       },
                     ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _laporanList.isEmpty ? null : _generatePdf,
-        backgroundColor:
-            _laporanList.isEmpty ? Colors.grey : Colors.blue.shade700,
-        child: const Icon(Icons.print),
+        backgroundColor: _laporanList.isEmpty ? Colors.grey : Colors.blue[700],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 5,
+        child: Icon(
+          Icons.print,
+          color: Colors.white,
+          size: 28,
+        ),
         tooltip: 'Cetak Laporan PDF',
+      ),
+    );
+  }
+}
+
+class StrukCard extends StatelessWidget {
+  final Map<String, dynamic> item;
+  final DateFormat dateFormat;
+
+  const StrukCard({super.key, required this.item, required this.dateFormat});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Bisa ditambahkan navigasi ke detail transaksi
+      },
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        margin: const EdgeInsets.only(bottom: 16.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Header struk dengan nomor transaksi dan ikon
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.receipt_long,
+                      color: Colors.blue[700],
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Transaksi #${item['id_transaksi']}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Konten struk
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Produk: ${item['nama_produk']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Kategori: ${item['kategori']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    Text(
+                      'Harga: Rp ${item['harga'].toStringAsFixed(0)}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    Text(
+                      'Jumlah: ${item['jumlah']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    Text(
+                      'Subtotal: Rp ${item['subtotal'].toStringAsFixed(0)}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tanggal: ${dateFormat.format(DateTime.parse(item['tanggal']))}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

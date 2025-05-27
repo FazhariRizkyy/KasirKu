@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pos_app/components/menu.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
-
+import 'package:pos_app/components/onboarding_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -14,7 +14,7 @@ class SplashScreen extends StatelessWidget {
           'assets/images/splash-removebg-preview.png'
         ),
       ), 
-      nextScreen: const MenuPage(title: 'KasirKu'),
+      nextScreen: const WelcomeScreen(),
       duration: 5000,
       backgroundColor: Colors.white,
     );
