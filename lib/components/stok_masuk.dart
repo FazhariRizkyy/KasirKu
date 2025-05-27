@@ -155,7 +155,7 @@ class StokCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Stok: ${stok['stok']}',
+                        'Stok Masuk: ${stok['stok']}',
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,

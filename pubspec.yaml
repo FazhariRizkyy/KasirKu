@@ -73,7 +73,12 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/splash-removebg-preview.png
-
+    - assets/images/KasirKu.png
+    - assets/images/KasirKu-Icon.png
+    - assets/animation/Animasi-1.json
+    - assets/animation/Animasi-2.json
+    - assets/animation/Animasi-3.json
+    - assets/animation/Animasi-4.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

@@ -334,7 +334,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
               child: _filteredProdukList.isEmpty
                   ? Center(
                       child: Text(
-                        'Tidak ada produk ditemukan',
+                        'Tidak ada produk',
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,

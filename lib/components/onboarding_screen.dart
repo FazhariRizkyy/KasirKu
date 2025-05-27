@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:pos_app/components/menu.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -15,25 +16,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   final List<Map<String, String>> _onboardingData = [
     {
-      'image': 'assets/images/splash.png',
+      'animation': 'assets/animation/Animasi-1.json',
       'title': 'Selamat Datang di Aplikasi Kasir UMKM!',
       'subtitle':
           'Catat penjualan harianmu dengan cepat, tanpa ribet, langsung dari ponselmu.',
     },
     {
-      'image': 'assets/images/splash.png',
+      'animation': 'assets/animation/Animasi-2.json',
       'title': 'Pantau Stok dan Penjualan',
       'subtitle':
           'Ketahui stok barang dan penjualan secara real-time, kapan saja, di mana saja.',
     },
     {
-      'image': 'assets/images/splash.png',
+      'animation': 'assets/animation/Animasi-3.json',
       'title': 'Laporan Keuangan Sederhana',
       'subtitle':
           'Dapatkan gambaran keuangan yang jelas untuk pengambilan keputusan bisnis.',
     },
     {
-      'image': 'assets/images/splash.png',
+      'animation': 'assets/animation/Animasi-4.json',
       'title': 'Aman dan Mudah Digunakan',
       'subtitle':
           'Data bisnismu terlindungi dengan antarmuka ramah untuk semua kalangan.',
@@ -71,7 +72,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   },
                   itemBuilder: (context, index) {
                     return OnboardingPage(
-                      image: _onboardingData[index]['image']!,
+                      animation: _onboardingData[index]['animation']!,
                       title: _onboardingData[index]['title']!,
                       subtitle: _onboardingData[index]['subtitle']!,
                     );
@@ -202,13 +203,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 }
 
 class OnboardingPage extends StatelessWidget {
-  final String image;
+  final String animation;
   final String title;
   final String subtitle;
 
   const OnboardingPage({
     super.key,
-    required this.image,
+    required this.animation,
     required this.title,
     required this.subtitle,
   });
@@ -223,8 +224,8 @@ class OnboardingPage extends StatelessWidget {
           AnimatedOpacity(
             opacity: 1.0,
             duration: const Duration(milliseconds: 500),
-            child: Image.asset(
-              image,
+            child: Lottie.asset(
+              animation,
               height: 280,
               fit: BoxFit.contain,
             ),

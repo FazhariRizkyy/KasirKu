@@ -54,7 +54,7 @@ class _DataProdukPageState extends State<DataProdukPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Data Makanan & Minuman',
+          'Daftar Produk',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -93,7 +93,7 @@ class _DataProdukPageState extends State<DataProdukPage> {
             child: _filteredProdukList.isEmpty
                 ? Center(
                     child: Text(
-                      'Tidak ada Makanan & Minuman ditemukan',
+                      'Tidak ada Makanan & Minuman',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         color: Colors.grey.shade600,
