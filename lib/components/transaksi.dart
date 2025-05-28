@@ -105,8 +105,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
         _filteredProdukList = _produkList;
       } else {
         _filteredProdukList = _produkList
-            .where((produk) =>
-                produk.namaProduk.toLowerCase().contains(query.toLowerCase()))
+            .where((produk) => produk.namaProduk.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
     });
@@ -121,137 +120,185 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
+              color: Colors.white,
             ),
           ),
           backgroundColor: Colors.red[600],
           duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
     }
 
-    final db = await _dbHelper.database;
-    final batch = db.batch();
+    try {
+      final db = await _dbHelper.database;
+      final batch = db.batch();
 
-    final total = _hitungTotal();
-    final transaksi = {
-      'tanggal': DateTime.now().toIso8601String(),
-      'total': total,
-    };
-    final idTransaksi = await db.insert('tabel_transaksi', transaksi);
+      final total = _hitungTotal();
+      final transaksi = {
+        'tanggal': DateTime.now().toIso8601String(),
+        'total': total,
+      };
+      final idTransaksi = await db.insert('tabel_transaksi', transaksi);
 
-    for (var item in _keranjang) {
-      final subtotal = item['harga'] * item['jumlah'];
-      batch.insert('tabel_detail_transaksi', {
-        'id_transaksi': idTransaksi,
-        'id_produk': item['id_produk'],
-        'nama_produk': item['nama'],
-        'harga': item['harga'],
-        'jumlah': item['jumlah'],
-        'subtotal': subtotal,
-      });
-
-      final produk = await _dbHelper.getProdukById(item['id_produk']);
-      if (produk != null) {
-        final newStok = produk.stok - item['jumlah'];
-        batch.update(
-          'tabel_produk',
-          {'stok': newStok},
-          where: 'id_produk = ?',
-          whereArgs: [item['id_produk']],
-        );
-
-        batch.insert('tabel_laporan_penjualan', {
+      for (var item in _keranjang) {
+        final subtotal = item['harga'] * item['jumlah'];
+        batch.insert('tabel_detail_transaksi', {
           'id_transaksi': idTransaksi,
           'id_produk': item['id_produk'],
           'nama_produk': item['nama'],
           'harga': item['harga'],
           'jumlah': item['jumlah'],
-          'kategori': produk.kategori,
-          'tanggal': DateTime.now().toIso8601String(),
+          'satuan': 'Unit',
           'subtotal': subtotal,
         });
+
+        final produk = await _dbHelper.getProdukById(item['id_produk']);
+        if (produk != null) {
+          final newStok = produk.stok - item['jumlah'];
+          batch.update(
+            'tabel_produk',
+            {'stok': newStok},
+            where: 'id_produk = ?',
+            whereArgs: [item['id_produk']],
+          );
+
+          batch.insert('tabel_laporan_penjualan', {
+            'id_transaksi': idTransaksi,
+            'id_produk': item['id_produk'],
+            'nama_produk': item['nama'],
+            'harga': item['harga'],
+            'jumlah': item['jumlah'],
+            'kategori': produk.kategori,
+            'satuan': 'Unit',
+            'tanggal': DateTime.now().toIso8601String(),
+            'subtotal': subtotal,
+          });
+        }
       }
-    }
 
-    await batch.commit();
+      await batch.commit();
 
-    _animationController.reset();
-    _animationController.forward();
+      _animationController.reset();
+      _animationController.forward();
 
-    showDialog(
-      context: context,
-      builder: (context) => ScaleTransition(
-        scale: _scaleAnimation,
-        child: Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 8,
-          backgroundColor: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.green[600],
-                  size: 60,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Transaksi Berhasil!',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+      showDialog(
+        context: context,
+        builder: (context) => ScaleTransition(
+          scale: _scaleAnimation,
+          child: Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 8,
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green[600],
+                    size: 80,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Total: Rp ${total.toStringAsFixed(0)}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black54,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      setState(() {
-                        _keranjang.clear();
-                        _loadProduk();
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[700],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: Text(
-                      'OK',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Transaksi Berhasil!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Text(
+                    'Total: Rp ${total.toStringAsFixed(0)}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        setState(() {
+                          _keranjang.clear();
+                          _loadProduk();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[700],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 5,
+                        shadowColor: Colors.blue.withOpacity(0.3),
+                      ),
+                      child: Text(
+                        'OK',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Error',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          content: Text(
+            'Gagal menyimpan transaksi: $e',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Colors.black54,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'OK',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override
@@ -293,7 +340,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.blue.withOpacity(0.2),
@@ -314,10 +361,11 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
                     prefixIcon: Icon(
                       Icons.search,
                       color: Colors.blue[700],
+                      size: 24,
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                      vertical: 15,
+                      vertical: 16,
                       horizontal: 20,
                     ),
                   ),
@@ -334,7 +382,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
               child: _filteredProdukList.isEmpty
                   ? Center(
                       child: Text(
-                        'Tidak ada produk',
+                        'Tidak ada produk ditemukan',
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
@@ -362,18 +410,18 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
             if (_keranjang.isNotEmpty)
               Container(
                 constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.4,
+                  maxHeight: MediaQuery.of(context).size.height * 0.45,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
+                    top: Radius.circular(24),
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.blue.withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, -2),
+                      blurRadius: 12,
+                      offset: const Offset(0, -4),
                     ),
                   ],
                 ),
@@ -382,17 +430,17 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
                   children: [
                     // Header Keranjang
                     Container(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
                         color: Colors.blue[50],
                         borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
+                          top: Radius.circular(24),
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            Icons.shopping_cart,
+                            Icons.shopping_cart_outlined,
                             color: Colors.blue[700],
                             size: 28,
                           ),
@@ -400,7 +448,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
                           Text(
                             'Keranjang Belanja',
                             style: GoogleFonts.poppins(
-                              fontSize: 18,
+                              fontSize: 20,
                               fontWeight: FontWeight.w600,
                               color: Colors.black87,
                             ),
@@ -429,10 +477,13 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                       child: Column(
                         children: [
-                          const Divider(height: 1),
+                          Divider(
+                            color: Colors.blue[100],
+                            thickness: 1,
+                          ),
                           const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -468,6 +519,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 elevation: 5,
+                                shadowColor: Colors.blue.withOpacity(0.3),
                               ),
                               child: Text(
                                 'Konfirmasi Transaksi',
@@ -536,11 +588,11 @@ class ProdukCard extends StatelessWidget {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: Colors.blue[100],
+                              color: Colors.blue[50],
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
-                              Icons.inventory_2,
+                              Icons.inventory_2_outlined,
                               color: Colors.blue[700],
                               size: 40,
                             ),
@@ -550,11 +602,11 @@ class ProdukCard extends StatelessWidget {
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            color: Colors.blue[100],
+                            color: Colors.blue[50],
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
-                            Icons.inventory_2,
+                            Icons.inventory_2_outlined,
                             color: Colors.blue[700],
                             size: 40,
                           ),
@@ -563,7 +615,7 @@ class ProdukCard extends StatelessWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -574,6 +626,8 @@ class ProdukCard extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           color: Colors.black87,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -594,6 +648,14 @@ class ProdukCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Icon(
+                  Icons.add_circle_outline,
+                  color: Colors.blue[700],
+                  size: 28,
                 ),
               ),
             ],
@@ -622,8 +684,20 @@ class KeranjangItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Expanded(
@@ -637,6 +711,8 @@ class KeranjangItem extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -655,13 +731,14 @@ class KeranjangItem extends StatelessWidget {
               IconButton(
                 onPressed: onKurang,
                 icon: Icon(
-                  Icons.remove_circle,
+                  Icons.remove_circle_outline,
                   color: Colors.blue[700],
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.blue[100],
+                  backgroundColor: Colors.blue[50],
+                  padding: const EdgeInsets.all(8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
@@ -678,13 +755,14 @@ class KeranjangItem extends StatelessWidget {
               IconButton(
                 onPressed: onTambah,
                 icon: Icon(
-                  Icons.add_circle,
+                  Icons.add_circle_outline,
                   color: Colors.blue[700],
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.blue[100],
+                  backgroundColor: Colors.blue[50],
+                  padding: const EdgeInsets.all(8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
@@ -692,13 +770,14 @@ class KeranjangItem extends StatelessWidget {
               IconButton(
                 onPressed: onHapus,
                 icon: const Icon(
-                  Icons.delete,
+                  Icons.delete_outline,
                   color: Colors.red,
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.red[100],
+                  backgroundColor: Colors.red[50],
+                  padding: const EdgeInsets.all(8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),

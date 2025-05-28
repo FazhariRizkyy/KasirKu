@@ -159,10 +159,10 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.blue.withOpacity(0.2),
@@ -195,12 +195,14 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                   },
                   style: GoogleFonts.poppins(
                     fontSize: 16,
+                    fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
                   underline: const SizedBox(),
                   icon: Icon(
                     Icons.arrow_drop_down,
                     color: Colors.blue[700],
+                    size: 28,
                   ),
                 ),
               ),
@@ -212,7 +214,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.blue.withOpacity(0.2),
@@ -227,7 +229,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                     Text(
                       'Total Pendapatan:',
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),
@@ -235,7 +237,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                     Text(
                       'Rp ${_hitungTotalPendapatan().toStringAsFixed(0)}',
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: Colors.blue[700],
                       ),
@@ -265,7 +267,10 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                         return AnimatedOpacity(
                           opacity: 1.0,
                           duration: const Duration(milliseconds: 300),
-                          child: StrukCard(item: item, dateFormat: _dateFormat),
+                          child: StrukCard(
+                            item: item,
+                            dateFormat: _dateFormat,
+                          ),
                         );
                       },
                     ),
@@ -275,7 +280,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _laporanList.isEmpty ? null : _generatePdf,
-        backgroundColor: _laporanList.isEmpty ? Colors.grey : Colors.blue[700],
+        backgroundColor: _laporanList.isEmpty ? Colors.grey[400] : Colors.blue[700],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -323,9 +328,9 @@ class StrukCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Header struk dengan nomor transaksi dan ikon
+              // Header struk
               Container(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   color: Colors.blue[50],
                   borderRadius: const BorderRadius.vertical(
@@ -335,7 +340,7 @@ class StrukCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.receipt_long,
+                      Icons.receipt_long_outlined,
                       color: Colors.blue[700],
                       size: 28,
                     ),
@@ -366,6 +371,8 @@ class StrukCard extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                         color: Colors.black87,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     Text(

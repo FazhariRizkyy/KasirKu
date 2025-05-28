@@ -19,7 +19,12 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
+    return await openDatabase(
+      path,
+      version: 4,
+      onCreate: _createDB,
+      onUpgrade: _upgradeDB,
+    );
   }
 
   // Membuat tabel saat database dibuat
@@ -68,8 +73,7 @@ class DatabaseHelper {
       id_transaksi INTEGER NOT NULL,
       id_produk INTEGER NOT NULL,
       nama_produk TEXT NOT NULL,
-      harga_jual REAL NOT NULL,
-      harga_beli REAL NOT NULL,
+      harga REAL NOT NULL,
       jumlah INTEGER NOT NULL,
       satuan TEXT NOT NULL,
       subtotal REAL NOT NULL,
@@ -99,20 +103,48 @@ class DatabaseHelper {
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute('ALTER TABLE tabel_produk ADD harga_beli REAL NOT NULL DEFAULT 0.0');
-      await db.execute('ALTER TABLE tabel_produk ADD harga_jual REAL NOT NULL DEFAULT 0.0');
-      await db.execute('UPDATE tabel_produk SET harga_jual = harga WHERE harga_jual = 0.0');
-      await db.execute('ALTER TABLE tabel_laporan_penjualan ADD harga_beli REAL NOT NULL DEFAULT 0.0');
-      await db.execute('ALTER TABLE tabel_laporan_penjualan ADD harga_jual REAL NOT NULL DEFAULT 0.0');
-      await db.execute('UPDATE tabel_laporan_penjualan SET harga_jual = harga WHERE harga_jual = 0.0');
+      await db.execute(
+        'ALTER TABLE tabel_produk ADD harga_beli REAL NOT NULL DEFAULT 0.0',
+      );
+      await db.execute(
+        'ALTER TABLE tabel_produk ADD harga_jual REAL NOT NULL DEFAULT 0.0',
+      );
+      await db.execute(
+        'UPDATE tabel_produk SET harga_jual = harga WHERE harga_jual = 0.0',
+      );
+      await db.execute(
+        'ALTER TABLE tabel_laporan_penjualan ADD harga_beli REAL NOT NULL DEFAULT 0.0',
+      );
+      await db.execute(
+        'ALTER TABLE tabel_laporan_penjualan ADD harga_jual REAL NOT NULL DEFAULT 0.0',
+      );
+      await db.execute(
+        'UPDATE tabel_laporan_penjualan SET harga_jual = harga WHERE harga_jual = 0.0',
+      );
     }
     if (oldVersion < 3) {
-      await db.execute('ALTER TABLE tabel_produk ADD satuan TEXT NOT NULL DEFAULT "Unit"');
-      await db.execute('ALTER TABLE tabel_stok_masuk ADD satuan TEXT NOT NULL DEFAULT "Unit"');
-      await db.execute('ALTER TABLE tabel_detail_transaksi ADD satuan TEXT NOT NULL DEFAULT "Unit"');
-      await db.execute('ALTER TABLE tabel_laporan_penjualan ADD satuan TEXT NOT NULL DEFAULT "Unit"');
+      await db.execute(
+        'ALTER TABLE tabel_produk ADD satuan TEXT NOT NULL DEFAULT "Unit"',
+      );
+      await db.execute(
+        'ALTER TABLE tabel_stok_masuk ADD satuan TEXT NOT NULL DEFAULT "Unit"',
+      );
+      await db.execute(
+        'ALTER TABLE tabel_detail_transaksi ADD satuan TEXT NOT NULL DEFAULT "Unit"',
+      );
+      await db.execute(
+        'ALTER TABLE tabel_laporan_penjualan ADD satuan TEXT NOT NULL DEFAULT "Unit"',
+      );
+    }
+    if (oldVersion < 4) {
+      // Tambahkan versi baru untuk migrasi kolom harga
+      await db.execute(
+        'ALTER TABLE tabel_detail_transaksi ADD harga REAL NOT NULL DEFAULT 0.0',
+      );
     }
   }
+
+  
 
   // CRUD Operations untuk tabel_produk
   Future<int> createProduk(Produk produk) async {
