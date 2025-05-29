@@ -17,15 +17,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final List<Map<String, String>> _onboardingData = [
     {
       'animation': 'assets/animation/Animasi-1.json',
-      'title': 'Selamat Datang di Aplikasi Kasir UMKM!',
+      'title': 'Selamat Datang di Aplikasi KasirKu',
       'subtitle':
           'Catat penjualan harianmu dengan cepat, tanpa ribet, langsung dari ponselmu.',
     },
     {
       'animation': 'assets/animation/Animasi-2.json',
-      'title': 'Pantau Stok dan Penjualan',
+      'title': 'Pantau Stok Barang',
       'subtitle':
-          'Ketahui stok barang dan penjualan secara real-time, kapan saja, di mana saja.',
+          'Ketahui stok barang secara real-time, kapan saja, di mana saja.',
     },
     {
       'animation': 'assets/animation/Animasi-3.json',
@@ -34,10 +34,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           'Dapatkan gambaran keuangan yang jelas untuk pengambilan keputusan bisnis.',
     },
     {
-      'animation': 'assets/animation/Animasi-4.json',
-      'title': 'Aman dan Mudah Digunakan',
+      'animation': 'assets/animation/Animasi-5.json',
+      'title': 'Mudah Digunakan',
       'subtitle':
-          'Data bisnismu terlindungi dengan antarmuka ramah untuk semua kalangan.',
+          'Antarmuka ramah untuk semua kalangan.',
     },
   ];
 
