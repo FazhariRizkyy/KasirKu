@@ -171,45 +171,6 @@ class AboutPage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            // Media Sosial
-            Text(
-              'Ikuti Kami',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Colors.blue.shade900,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(FontAwesomeIcons.instagram, size: 30),
-                  color: Colors.pink.shade400,
-                  onPressed: () {
-                    _launchURL('https://instagram.com/fazhari999'); // Ganti dengan URL Instagram Anda
-                  },
-                ),
-                const SizedBox(width: 20),
-                IconButton(
-                  icon: const Icon(FontAwesomeIcons.linkedin, size: 30),
-                  color: Colors.blue.shade700,
-                  onPressed: () {
-                    _launchURL('https://www.linkedin.com/in/fazhari-rizky-277061299/'); // Ganti dengan URL LinkedIn Anda
-                  },
-                ),
-                const SizedBox(width: 20),
-                IconButton(
-                  icon: const Icon(FontAwesomeIcons.facebook, size: 30),
-                  color: Colors.blue.shade900,
-                  onPressed: () {
-                    _launchURL('https://www.facebook.com/ravenzenin24'); // Ganti dengan URL Facebook Anda
-                  },
-                ),
-              ],
-            ),
             const SizedBox(height: 30),
             // Versi Aplikasi
             Text(
