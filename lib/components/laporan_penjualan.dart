@@ -5,11 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import 'dart:typed_data';
 
 class LaporanPenjualanPage extends StatefulWidget {
   const LaporanPenjualanPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _LaporanPenjualanPageState createState() => _LaporanPenjualanPageState();
 }
 
@@ -61,13 +63,13 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
     );
   }
 
-  Future<void> _generatePdf() async {
+  Future<Uint8List> _generatePdf(PdfPageFormat format) async {
     final pdf = pw.Document();
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: format,
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) => [
           pw.Header(
@@ -81,6 +83,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
             ),
           ),
           pw.SizedBox(height: 20),
+          // ignore: deprecated_member_use
           pw.Table.fromTextArray(
             headers: [
               'ID Transaksi',
@@ -116,10 +119,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
       ),
     );
 
-    await Printing.sharePdf(
-      bytes: await pdf.save(),
-      filename: 'laporan_penjualan_$_selectedPeriod.pdf',
-    );
+    return pdf.save();
   }
 
   @override
@@ -165,6 +165,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.blue.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -217,6 +218,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.blue.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -279,18 +281,31 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _laporanList.isEmpty ? null : _generatePdf,
+        onPressed: _laporanList.isEmpty
+            ? null
+            : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PreviewScreen(
+                      laporanList: _laporanList,
+                      selectedPeriod: _selectedPeriod,
+                      generatePdf: _generatePdf,
+                    ),
+                  ),
+                );
+              },
         backgroundColor: _laporanList.isEmpty ? Colors.grey[400] : Colors.blue[700],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
         elevation: 5,
+        tooltip: 'Lihat Preview & Cetak PDF',
         child: Icon(
           Icons.print,
           color: Colors.white,
           size: 28,
         ),
-        tooltip: 'Cetak Laporan PDF',
       ),
     );
   }
@@ -320,6 +335,7 @@ class StrukCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
+                // ignore: deprecated_member_use
                 color: Colors.blue.withOpacity(0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
@@ -422,6 +438,56 @@ class StrukCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class PreviewScreen extends StatelessWidget {
+  final List<Map<String, dynamic>> laporanList;
+  final String selectedPeriod;
+  final Future<Uint8List> Function(PdfPageFormat) generatePdf;
+
+  const PreviewScreen({
+    super.key,
+    required this.laporanList,
+    required this.selectedPeriod,
+    required this.generatePdf,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_outlined),
+        ),
+        centerTitle: true,
+        title: Text(
+          'Laporan Penjualan - $selectedPeriod',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.blue[700]!, Colors.blue[500]!],
+            ),
+          ),
+        ),
+      ),
+      body: PdfPreview(
+        build: (format) => generatePdf(format),
+        allowSharing: true,
+        allowPrinting: true,
+        initialPageFormat: PdfPageFormat.a4,
+        pdfFileName: 'laporan_penjualan_$selectedPeriod.pdf',
       ),
     );
   }

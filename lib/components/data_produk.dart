@@ -180,7 +180,6 @@ class _DataProdukPageState extends State<DataProdukPage> {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
-                                          const SizedBox(height: 6),
                                           Text(
                                             'Harga Jual: Rp ${produk.hargaJual.toStringAsFixed(0)}',
                                             style: GoogleFonts.poppins(
@@ -189,7 +188,6 @@ class _DataProdukPageState extends State<DataProdukPage> {
                                               color: Colors.blue[700],
                                             ),
                                           ),
-                                          const SizedBox(height: 4),
                                           Text(
                                             'Stok: ${produk.stok} ${produk.satuan}',
                                             style: GoogleFonts.poppins(
@@ -198,7 +196,6 @@ class _DataProdukPageState extends State<DataProdukPage> {
                                               color: Colors.grey[700],
                                             ),
                                           ),
-                                          const SizedBox(height: 4),
                                           Text(
                                             produk.kategori,
                                             style: GoogleFonts.poppins(
