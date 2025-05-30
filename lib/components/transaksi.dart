@@ -386,7 +386,7 @@ class _TransaksiPageState extends State<TransaksiPage> with SingleTickerProvider
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: Colors.black54,
+                          color: Colors.blue[600],
                         ),
                       ),
                     )

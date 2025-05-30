@@ -18,7 +18,7 @@ class AboutPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Layanan Pelanggan',
+          'Tentang Aplikasi',
           style: GoogleFonts.poppins(
             fontSize: 22,
             fontWeight: FontWeight.w600,
@@ -138,7 +138,7 @@ class AboutPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '+62 812-3456-7890', // Ganti dengan nomor WhatsApp Anda
+                      '+62 812-1805-8713', // Ganti dengan nomor WhatsApp Anda
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         color: Colors.grey.shade600,
