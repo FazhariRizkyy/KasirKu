@@ -11,7 +11,6 @@ class LaporanPenjualanPage extends StatefulWidget {
   const LaporanPenjualanPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LaporanPenjualanPageState createState() => _LaporanPenjualanPageState();
 }
 
@@ -21,6 +20,7 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
   String _selectedPeriod = 'Harian';
   final List<String> _periods = ['Harian', 'Mingguan', 'Bulanan'];
   final DateFormat _dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+  final DateFormat _reportDateFormat = DateFormat('dd MMMM yyyy');
 
   @override
   void initState() {
@@ -30,7 +30,18 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
 
   Future<void> _fetchLaporan() async {
     final db = await _dbHelper.database;
-    String query = 'SELECT * FROM tabel_laporan_penjualan';
+    String query = '''
+      SELECT 
+        lp.id_transaksi,
+        lp.nama_produk,
+        lp.harga_beli,
+        lp.harga_jual,
+        lp.jumlah,
+        (lp.harga_jual - lp.harga_beli) * lp.jumlah AS keuntungan,
+        t.metode_pembayaran
+      FROM tabel_laporan_penjualan lp
+      JOIN tabel_transaksi t ON lp.id_transaksi = t.id_transaksi
+    ''';
     List<String> whereArgs = [];
 
     DateTime now = DateTime.now();
@@ -38,15 +49,15 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
 
     if (_selectedPeriod == 'Harian') {
       startDate = DateTime(now.year, now.month, now.day);
-      query += ' WHERE date(tanggal) = ?';
+      query += ' WHERE date(t.tanggal) = ?';
       whereArgs.add(startDate.toIso8601String().substring(0, 10));
     } else if (_selectedPeriod == 'Mingguan') {
       startDate = now.subtract(Duration(days: now.weekday - 1));
-      query += ' WHERE date(tanggal) >= ?';
+      query += ' WHERE date(t.tanggal) >= ?';
       whereArgs.add(startDate.toIso8601String().substring(0, 10));
     } else {
       startDate = DateTime(now.year, now.month, 1);
-      query += ' WHERE date(tanggal) >= ?';
+      query += ' WHERE date(t.tanggal) >= ?';
       whereArgs.add(startDate.toIso8601String().substring(0, 10));
     }
 
@@ -59,13 +70,31 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
   double _hitungTotalPendapatan() {
     return _laporanList.fold(
       0,
-      (sum, item) => sum + (item['subtotal'] as num).toDouble(),
+      (sum, item) => sum + (item['harga_jual'] * item['jumlah']).toDouble(),
+    );
+  }
+
+  double _hitungTotalKeuntungan() {
+    return _laporanList.fold(
+      0,
+      (sum, item) => sum + (item['keuntungan'] as num).toDouble(),
     );
   }
 
   Future<Uint8List> _generatePdf(PdfPageFormat format) async {
     final pdf = pw.Document();
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    DateTime now = DateTime.now();
+    String dateText;
+
+    if (_selectedPeriod == 'Harian') {
+      dateText = _reportDateFormat.format(now);
+    } else if (_selectedPeriod == 'Mingguan') {
+      DateTime startDate = now.subtract(Duration(days: now.weekday - 1));
+      DateTime endDate = startDate.add(Duration(days: 6));
+      dateText = '${_reportDateFormat.format(startDate)} - ${_reportDateFormat.format(endDate)}';
+    } else {
+      dateText = 'Bulan ${_reportDateFormat.format(DateTime(now.year, now.month, 1)).split(' ').sublist(1).join(' ')}';
+    }
 
     pdf.addPage(
       pw.MultiPage(
@@ -74,34 +103,43 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
         build: (pw.Context context) => [
           pw.Header(
             level: 0,
-            child: pw.Text(
-              'Laporan Penjualan - $_selectedPeriod',
-              style: pw.TextStyle(
-                fontSize: 20,
-                fontWeight: pw.FontWeight.bold,
-              ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Laporan Penjualan - $_selectedPeriod',
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                pw.Text(
+                  'Tanggal: $dateText',
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+              ],
             ),
           ),
           pw.SizedBox(height: 20),
-          // ignore: deprecated_member_use
           pw.Table.fromTextArray(
             headers: [
-              'ID Transaksi',
+              'Transaksi',
               'Produk',
-              'Kategori',
-              'Harga',
-              'Jumlah',
-              'Subtotal',
-              'Tanggal',
+              'Harga Beli',
+              'Harga Jual',
+              'Terjual',
+              'Keuntungan',
+              'Metode Pembayaran',
             ],
             data: _laporanList.map((item) => [
                   item['id_transaksi'].toString(),
                   item['nama_produk'],
-                  item['kategori'],
-                  'Rp ${item['harga'].toStringAsFixed(0)}',
+                  'Rp ${item['harga_beli'].toStringAsFixed(0)}',
+                  'Rp ${item['harga_jual'].toStringAsFixed(0)}',
                   item['jumlah'].toString(),
-                  'Rp ${item['subtotal'].toStringAsFixed(0)}',
-                  dateFormat.format(DateTime.parse(item['tanggal'])),
+                  'Rp ${item['keuntungan'].toStringAsFixed(0)}',
+                  item['metode_pembayaran'] ?? 'Tidak Diketahui',
                 ]).toList(),
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             cellAlignment: pw.Alignment.centerLeft,
@@ -110,6 +148,13 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
           pw.SizedBox(height: 20),
           pw.Text(
             'Total Pendapatan: Rp ${_hitungTotalPendapatan().toStringAsFixed(0)}',
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.Text(
+            'Total Keuntungan: Rp ${_hitungTotalKeuntungan().toStringAsFixed(0)}',
             style: pw.TextStyle(
               fontSize: 16,
               fontWeight: pw.FontWeight.bold,
@@ -155,7 +200,6 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
         ),
         child: Column(
           children: [
-            // Dropdown untuk filter periode
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
@@ -165,7 +209,6 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      // ignore: deprecated_member_use
                       color: Colors.blue.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -208,7 +251,6 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                 ),
               ),
             ),
-            // Total Pendapatan
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Container(
@@ -218,37 +260,61 @@ class _LaporanPenjualanPageState extends State<LaporanPenjualanPage> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      // ignore: deprecated_member_use
                       color: Colors.blue.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
-                    Text(
-                      'Total Pendapatan:',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Pendapatan:',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          'Rp ${_hitungTotalPendapatan().toStringAsFixed(0)}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Rp ${_hitungTotalPendapatan().toStringAsFixed(0)}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue[700],
-                      ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Keuntungan:',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          'Rp ${_hitungTotalKeuntungan().toStringAsFixed(0)}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
-            // Daftar Laporan
             Expanded(
               child: _laporanList.isEmpty
                   ? Center(
@@ -335,7 +401,6 @@ class StrukCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                // ignore: deprecated_member_use
                 color: Colors.blue.withOpacity(0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
@@ -344,7 +409,6 @@ class StrukCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Header struk
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
@@ -374,7 +438,6 @@ class StrukCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Konten struk
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -392,7 +455,7 @@ class StrukCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Kategori: ${item['kategori']}',
+                      'Harga Beli: Rp ${item['harga_beli'].toStringAsFixed(0)}',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -400,7 +463,7 @@ class StrukCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Harga: Rp ${item['harga'].toStringAsFixed(0)}',
+                      'Harga Jual: Rp ${item['harga_jual'].toStringAsFixed(0)}',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -408,7 +471,7 @@ class StrukCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Jumlah: ${item['jumlah']}',
+                      'Terjual: ${item['jumlah']}',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -416,16 +479,15 @@ class StrukCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Subtotal: Rp ${item['subtotal'].toStringAsFixed(0)}',
+                      'Keuntungan: Rp ${item['keuntungan'].toStringAsFixed(0)}',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Colors.blue[700],
                       ),
                     ),
-                    const SizedBox(height: 8),
                     Text(
-                      'Tanggal: ${dateFormat.format(DateTime.parse(item['tanggal']))}',
+                      'Metode Pembayaran: ${item['metode_pembayaran'] ?? 'Tidak Diketahui'}',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,

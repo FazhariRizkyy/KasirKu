@@ -8,7 +8,6 @@ class DatabaseHelper {
 
   DatabaseHelper._init();
 
-  // Getter untuk database
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB('kasirku.db');
@@ -21,13 +20,12 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5, // Increment version for migration
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
   }
 
-  // Membuat tabel saat database dibuat
   Future _createDB(Database db, int version) async {
     await db.execute('''
     CREATE TABLE tabel_produk (
@@ -43,7 +41,6 @@ class DatabaseHelper {
     )
     ''');
 
-    // Tabel Stok Masuk
     await db.execute('''
       CREATE TABLE tabel_stok_masuk (
         id_stok INTEGER PRIMARY KEY,
@@ -57,16 +54,15 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabel Transaksi
     await db.execute('''
     CREATE TABLE tabel_transaksi (
       id_transaksi INTEGER PRIMARY KEY AUTOINCREMENT,
       tanggal TEXT NOT NULL,
-      total REAL NOT NULL
+      total REAL NOT NULL,
+      metode_pembayaran TEXT NOT NULL DEFAULT 'Tunai'
     )
     ''');
 
-    // Tabel Detail Transaksi
     await db.execute('''
     CREATE TABLE tabel_detail_transaksi (
       id_detail INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,7 +78,6 @@ class DatabaseHelper {
     )
     ''');
 
-    // Tabel Laporan Penjualan
     await db.execute('''
     CREATE TABLE tabel_laporan_penjualan (
       id_laporan INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,6 +90,9 @@ class DatabaseHelper {
       satuan TEXT NOT NULL,
       tanggal TEXT NOT NULL,
       subtotal REAL NOT NULL,
+      harga_beli REAL NOT NULL,
+      harga_jual REAL NOT NULL,
+      metode_pembayaran TEXT NOT NULL DEFAULT 'Tunai',
       FOREIGN KEY (id_transaksi) REFERENCES tabel_transaksi(id_transaksi),
       FOREIGN KEY (id_produk) REFERENCES tabel_produk(id_produk)
     )
@@ -137,16 +135,20 @@ class DatabaseHelper {
       );
     }
     if (oldVersion < 4) {
-      // Tambahkan versi baru untuk migrasi kolom harga
       await db.execute(
         'ALTER TABLE tabel_detail_transaksi ADD harga REAL NOT NULL DEFAULT 0.0',
       );
     }
+    if (oldVersion < 5) {
+      await db.execute(
+        'ALTER TABLE tabel_transaksi ADD metode_pembayaran TEXT NOT NULL DEFAULT "Tunai"',
+      );
+      await db.execute(
+        'ALTER TABLE tabel_laporan_penjualan ADD metode_pembayaran TEXT NOT NULL DEFAULT "Tunai"',
+      );
+    }
   }
 
-  
-
-  // CRUD Operations untuk tabel_produk
   Future<int> createProduk(Produk produk) async {
     final db = await database;
     final productId = await db.insert('tabel_produk', produk.toMap());

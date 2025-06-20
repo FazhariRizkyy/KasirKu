@@ -19,9 +19,9 @@ class _TransaksiPageState extends State<TransaksiPage>
   final List<Map<String, dynamic>> _keranjang = [];
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  final TextEditingController _uangDiberikanController =
-      TextEditingController();
+  final TextEditingController _uangDiberikanController = TextEditingController();
   double _kembalian = 0.0;
+  String _metodePembayaran = 'Cash'; // Default metode pembayaran
 
   @override
   void initState() {
@@ -40,6 +40,7 @@ class _TransaksiPageState extends State<TransaksiPage>
   @override
   void dispose() {
     _animationController.dispose();
+    _uangDiberikanController.dispose();
     super.dispose();
   }
 
@@ -65,6 +66,7 @@ class _TransaksiPageState extends State<TransaksiPage>
           'id_produk': produk.idProduk,
           'nama': produk.namaProduk,
           'harga': produk.hargaJual,
+          'harga_beli': produk.hargaBeli, // Tambahkan harga_beli
           'stok': produk.stok,
           'jumlah': 1,
         });
@@ -108,14 +110,13 @@ class _TransaksiPageState extends State<TransaksiPage>
       if (query.isEmpty) {
         _filteredProdukList = _produkList;
       } else {
-        _filteredProdukList =
-            _produkList
-                .where(
-                  (produk) => produk.namaProduk.toLowerCase().contains(
+        _filteredProdukList = _produkList
+            .where(
+              (produk) => produk.namaProduk.toLowerCase().contains(
                     query.toLowerCase(),
                   ),
-                )
-                .toList();
+            )
+            .toList();
       }
     });
   }
@@ -143,110 +144,144 @@ class _TransaksiPageState extends State<TransaksiPage>
       return;
     }
 
-    
-
     final total = _hitungTotal();
     _uangDiberikanController.clear();
     _kembalian = 0.0;
+    _metodePembayaran = 'Cash'; // Reset metode pembayaran
 
     showDialog(
       context: context,
-      builder:
-          (context) => StatefulBuilder(
-            builder:
-                (context, setStateDialog) => AlertDialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  title: Text(
-                    'Konfirmasi Transaksi',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Total Pembelian: Rp ${total.toStringAsFixed(0)}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _uangDiberikanController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Uang Diberikan',
-                          hintText: 'Masukkan jumlah uang',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                        style: GoogleFonts.poppins(fontSize: 14),
-                        onChanged: (value) {
-                          setStateDialog(() {
-                            double uangDiberikan =
-                                double.tryParse(value) ?? 0.0;
-                            _kembalian = uangDiberikan - total;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Batal',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.blue[700],
-                        ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed:
-                          _kembalian >= 0
-                              ? () {
-                                Navigator.pop(context);
-                                _prosesTransaksi(); // Panggil fungsi proses transaksi
-                              }
-                              : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                      ),
-                      child: Text(
-                        'Konfirmasi',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
+          title: Text(
+            'Konfirmasi Transaksi',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Total Pembelian: Rp ${total.toStringAsFixed(0)}',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Metode Pembayaran:',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              DropdownButton<String>(
+                value: _metodePembayaran,
+                isExpanded: true,
+                items: ['Cash', 'QRIS'].map((String method) {
+                  return DropdownMenuItem<String>(
+                    value: method,
+                    child: Text(
+                      method,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setStateDialog(() {
+                    _metodePembayaran = newValue!;
+                  });
+                },
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black87,
+                ),
+                underline: Container(
+                  height: 1,
+                  color: Colors.blue[700],
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _uangDiberikanController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Uang Diberikan',
+                  hintText: 'Masukkan jumlah uang',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+                style: GoogleFonts.poppins(fontSize: 14),
+                onChanged: (value) {
+                  setStateDialog(() {
+                    double uangDiberikan = double.tryParse(value) ?? 0.0;
+                    _kembalian = uangDiberikan - total;
+                  });
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: _kembalian >= 0
+                  ? () {
+                      Navigator.pop(context);
+                      _prosesTransaksi();
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[700],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+              child: Text(
+                'Konfirmasi',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -259,6 +294,7 @@ class _TransaksiPageState extends State<TransaksiPage>
       final transaksi = {
         'tanggal': DateTime.now().toIso8601String(),
         'total': total,
+        'metode_pembayaran': _metodePembayaran, // Simpan metode pembayaran
       };
       final idTransaksi = await db.insert('tabel_transaksi', transaksi);
 
@@ -294,6 +330,9 @@ class _TransaksiPageState extends State<TransaksiPage>
             'satuan': 'Unit',
             'tanggal': DateTime.now().toIso8601String(),
             'subtotal': subtotal,
+            'harga_beli': item['harga_beli'], // Tambahkan harga_beli
+            'harga_jual': item['harga'], // harga_jual sama dengan harga
+            'metode_pembayaran': _metodePembayaran, // Tambahkan metode_pembayaran
           });
         }
       }
@@ -304,129 +343,124 @@ class _TransaksiPageState extends State<TransaksiPage>
       _animationController.forward();
 
       showDialog(
-        // ignore: use_build_context_synchronously
         context: context,
-        builder:
-            (context) => ScaleTransition(
-              scale: _scaleAnimation,
-              child: Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 8,
-                backgroundColor: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        color: Colors.green[600],
-                        size: 80,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Transaksi Berhasil!',
-                        style: GoogleFonts.poppins(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Total: Rp ${total.toStringAsFixed(0)}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      Text(
-                        'Kembalian: Rp ${_kembalian.toStringAsFixed(0)}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            setState(() {
-                              _keranjang.clear();
-                              _loadProduk();
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue[700],
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 5,
-                            // ignore: deprecated_member_use
-                            shadowColor: Colors.blue.withOpacity(0.3),
-                          ),
-                          child: Text(
-                            'OK',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+        builder: (context) => ScaleTransition(
+          scale: _scaleAnimation,
+          child: Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 8,
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green[600],
+                    size: 80,
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Transaksi Berhasil!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Total: Rp ${total.toStringAsFixed(0)}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  Text(
+                    'Kembalian: Rp ${_kembalian.toStringAsFixed(0)}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        setState(() {
+                          _keranjang.clear();
+                          _loadProduk();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[700],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 5,
+                        shadowColor: Colors.blue.withOpacity(0.3),
+                      ),
+                      child: Text(
+                        'OK',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+          ),
+        ),
       );
     } catch (e) {
       showDialog(
-        // ignore: use_build_context_synchronously
         context: context,
-        builder:
-            (context) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Text(
-                'Error',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              content: Text(
-                'Gagal menyimpan transaksi: $e',
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Error',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          content: Text(
+            'Gagal menyimpan transaksi: $e',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Colors.black54,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'OK',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blue[700],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'OK',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.blue[700],
-                    ),
-                  ),
-                ),
-              ],
             ),
+          ],
+        ),
       );
     }
   }
@@ -473,7 +507,6 @@ class _TransaksiPageState extends State<TransaksiPage>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      // ignore: deprecated_member_use
                       color: Colors.blue.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -510,36 +543,35 @@ class _TransaksiPageState extends State<TransaksiPage>
             ),
             // Daftar Produk
             Expanded(
-              child:
-                  _filteredProdukList.isEmpty
-                      ? Center(
-                        child: Text(
-                          'Tidak ada produk ditemukan',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.blue[600],
-                          ),
+              child: _filteredProdukList.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Tidak ada produk ditemukan',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue[600],
                         ),
-                      )
-                      : ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 8.0,
-                        ),
-                        itemCount: _filteredProdukList.length,
-                        itemBuilder: (context, index) {
-                          final item = _filteredProdukList[index];
-                          return AnimatedOpacity(
-                            opacity: 1.0,
-                            duration: const Duration(milliseconds: 300),
-                            child: ProdukCard(
-                              item: item,
-                              onTap: () => _tambahKeKeranjang(item),
-                            ),
-                          );
-                        },
                       ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      itemCount: _filteredProdukList.length,
+                      itemBuilder: (context, index) {
+                        final item = _filteredProdukList[index];
+                        return AnimatedOpacity(
+                          opacity: 1.0,
+                          duration: const Duration(milliseconds: 300),
+                          child: ProdukCard(
+                            item: item,
+                            onTap: () => _tambahKeKeranjang(item),
+                          ),
+                        );
+                      },
+                    ),
             ),
             // Form Keranjang
             if (_keranjang.isNotEmpty)
@@ -554,7 +586,6 @@ class _TransaksiPageState extends State<TransaksiPage>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      // ignore: deprecated_member_use
                       color: Colors.blue.withOpacity(0.2),
                       blurRadius: 12,
                       offset: const Offset(0, -4),
@@ -646,8 +677,7 @@ class _TransaksiPageState extends State<TransaksiPage>
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed:
-                                  _tampilkanDialogKonfirmasi, // Ubah ke fungsi baru
+                              onPressed: _tampilkanDialogKonfirmasi,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue[700],
                                 foregroundColor: Colors.white,
@@ -658,7 +688,6 @@ class _TransaksiPageState extends State<TransaksiPage>
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 elevation: 5,
-                                // ignore: deprecated_member_use
                                 shadowColor: Colors.blue.withOpacity(0.3),
                               ),
                               child: Text(
@@ -703,7 +732,6 @@ class ProdukCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                // ignore: deprecated_member_use
                 color: Colors.blue.withOpacity(0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
@@ -717,29 +745,13 @@ class ProdukCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child:
-                      item.foto != null && File(item.foto!).existsSync()
-                          ? Image.file(
-                            File(item.foto!),
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder:
-                                (context, error, stackTrace) => Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue[50],
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.inventory_2_outlined,
-                                    color: Colors.blue[700],
-                                    size: 40,
-                                  ),
-                                ),
-                          )
-                          : Container(
+                  child: item.foto != null && File(item.foto!).existsSync()
+                      ? Image.file(
+                          File(item.foto!),
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
@@ -752,6 +764,20 @@ class ProdukCard extends StatelessWidget {
                               size: 40,
                             ),
                           ),
+                        )
+                      : Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.inventory_2_outlined,
+                            color: Colors.blue[700],
+                            size: 40,
+                          ),
+                        ),
                 ),
               ),
               Expanded(
@@ -836,7 +862,6 @@ class KeranjangItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
             color: Colors.blue.withOpacity(0.1),
             blurRadius: 6,
             offset: const Offset(0, 2),
