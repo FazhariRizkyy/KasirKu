@@ -203,17 +203,6 @@ class _TransaksiPageState extends State<TransaksiPage>
                         },
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        'Kembalian: Rp ${_kembalian.toStringAsFixed(0)}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color:
-                              _kembalian >= 0
-                                  ? Colors.green[600]
-                                  : Colors.red[600],
-                        ),
-                      ),
                     ],
                   ),
                   actions: [
@@ -315,6 +304,7 @@ class _TransaksiPageState extends State<TransaksiPage>
       _animationController.forward();
 
       showDialog(
+        // ignore: use_build_context_synchronously
         context: context,
         builder:
             (context) => ScaleTransition(
@@ -380,6 +370,7 @@ class _TransaksiPageState extends State<TransaksiPage>
                               borderRadius: BorderRadius.circular(12),
                             ),
                             elevation: 5,
+                            // ignore: deprecated_member_use
                             shadowColor: Colors.blue.withOpacity(0.3),
                           ),
                           child: Text(
@@ -399,6 +390,7 @@ class _TransaksiPageState extends State<TransaksiPage>
       );
     } catch (e) {
       showDialog(
+        // ignore: use_build_context_synchronously
         context: context,
         builder:
             (context) => AlertDialog(
@@ -481,6 +473,7 @@ class _TransaksiPageState extends State<TransaksiPage>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.blue.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -561,6 +554,7 @@ class _TransaksiPageState extends State<TransaksiPage>
                   ),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.blue.withOpacity(0.2),
                       blurRadius: 12,
                       offset: const Offset(0, -4),
@@ -664,6 +658,7 @@ class _TransaksiPageState extends State<TransaksiPage>
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 elevation: 5,
+                                // ignore: deprecated_member_use
                                 shadowColor: Colors.blue.withOpacity(0.3),
                               ),
                               child: Text(
@@ -708,6 +703,7 @@ class ProdukCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
+                // ignore: deprecated_member_use
                 color: Colors.blue.withOpacity(0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
@@ -840,6 +836,7 @@ class KeranjangItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.blue.withOpacity(0.1),
             blurRadius: 6,
             offset: const Offset(0, 2),

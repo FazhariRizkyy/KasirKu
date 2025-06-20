@@ -10,7 +10,6 @@ class DataProdukPage extends StatefulWidget {
   const DataProdukPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _DataProdukPageState createState() => _DataProdukPageState();
 }
 
@@ -43,6 +42,95 @@ class _DataProdukPageState extends State<DataProdukPage> {
             .toList();
       }
     });
+  }
+
+  Future<void> _deleteProduk(int id, String nama) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Konfirmasi Hapus Produk',
+          style: TextStyle(color: Colors.red[600], fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus produk $nama ?',
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[600],
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _dbHelper.deleteProduk(id);
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            content: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.cancel,
+                    color: Colors.red[600],
+                    size: 80,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Data Produk Berhasil Dihapus!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[600],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 5,
+                        shadowColor: Colors.red.withOpacity(0.3),
+                      ),
+                      child: Text(
+                        'OK',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        _loadProduk();
+      }
+    }
   }
 
   @override
@@ -133,7 +221,6 @@ class _DataProdukPageState extends State<DataProdukPage> {
                                 color: Colors.white,
                                 boxShadow: [
                                   BoxShadow(
-                                    // ignore: deprecated_member_use
                                     color: Colors.black.withOpacity(0.1),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
@@ -227,10 +314,7 @@ class _DataProdukPageState extends State<DataProdukPage> {
                                           tooltip: 'Edit',
                                         ),
                                         IconButton(
-                                          onPressed: () async {
-                                            await _dbHelper.deleteProduk(produk.idProduk!);
-                                            _loadProduk();
-                                          },
+                                          onPressed: () => _deleteProduk(produk.idProduk!, produk.namaProduk),
                                           icon: Icon(
                                             Icons.delete,
                                             color: Colors.red[600],

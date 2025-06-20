@@ -2,8 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../models/product.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TambahDataPage extends StatefulWidget {
   final Produk? produk;
@@ -20,21 +23,28 @@ class _TambahDataPageState extends State<TambahDataPage> {
   final TextEditingController _hargaBeliController = TextEditingController();
   final TextEditingController _hargaJualController = TextEditingController();
   final TextEditingController _stokController = TextEditingController();
+  final TextEditingController _satuanController = TextEditingController();
   String? _kategori = 'Makanan';
-  String? _satuan = 'Pcs'; // Default satuan
   File? _image;
   final ImagePicker _picker = ImagePicker();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+
+  // Formatter untuk Rupiah
+  final NumberFormat _rupiahFormat = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: '',
+    decimalDigits: 0,
+  );
 
   @override
   void initState() {
     super.initState();
     if (widget.produk != null) {
       _namaController.text = widget.produk!.namaProduk;
-      _hargaBeliController.text = widget.produk!.hargaBeli.toString();
-      _hargaJualController.text = widget.produk!.hargaJual.toString();
+      _hargaBeliController.text = _rupiahFormat.format(widget.produk!.hargaBeli);
+      _hargaJualController.text = _rupiahFormat.format(widget.produk!.hargaJual);
       _stokController.text = widget.produk!.stok.toString();
-      _satuan = widget.produk!.satuan;
+      _satuanController.text = widget.produk!.satuan;
       _kategori = widget.produk!.kategori;
       if (widget.produk!.foto != null) {
         _image = File(widget.produk!.foto!);
@@ -58,8 +68,12 @@ class _TambahDataPageState extends State<TambahDataPage> {
   Future<void> _saveProduk() async {
     if (_formKey.currentState!.validate()) {
       final nama = _namaController.text;
-      final hargaBeli = double.tryParse(_hargaBeliController.text) ?? 0.0;
-      final hargaJual = double.tryParse(_hargaJualController.text) ?? 0.0;
+      final hargaBeli = double.tryParse(
+              _hargaBeliController.text.replaceAll('.', '')) ??
+          0.0;
+      final hargaJual = double.tryParse(
+              _hargaJualController.text.replaceAll('.', '')) ??
+          0.0;
       final stok = int.tryParse(_stokController.text) ?? 0;
 
       final produk = Produk(
@@ -69,16 +83,125 @@ class _TambahDataPageState extends State<TambahDataPage> {
         hargaJual: hargaJual,
         stok: stok,
         kategori: _kategori!,
-        satuan: _satuan!,
+        satuan: _satuanController.text,
         foto: _image?.path,
       );
 
       if (widget.produk == null) {
         await _dbHelper.createProduk(produk);
+        if (mounted) {
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              content: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      color: Colors.blue[700],
+                      size: 80,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Data Produk Berhasil Ditambahkan!',
+                      style: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[700],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 5,
+                          shadowColor: Colors.blue.withOpacity(0.3),
+                        ),
+                        child: Text(
+                          'OK',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+          if (mounted) Navigator.pop(context);
+        }
       } else {
         await _dbHelper.updateProduk(produk);
+        if (mounted) {
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              content: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.update,
+                      color: Colors.blue[700],
+                      size: 80,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Data Produk Berhasil Diubah!',
+                      style: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[700],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 5,
+                          shadowColor: Colors.blue.withOpacity(0.3),
+                        ),
+                        child: Text(
+                          'OK',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+          if (mounted) Navigator.pop(context);
+        }
       }
-      Navigator.pop(context);
     }
   }
 
@@ -169,14 +292,20 @@ class _TambahDataPageState extends State<TambahDataPage> {
                   decoration: InputDecoration(
                     labelText: 'Harga Beli',
                     border: OutlineInputBorder(),
+                    prefixText: 'Rp ',
                   ),
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    _RupiahInputFormatter(),
+                  ],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Harga beli tidak boleh kosong';
                     }
-                    if (double.tryParse(value) == null ||
-                        double.parse(value) <= 0) {
+                    final cleanValue = value.replaceAll('.', '');
+                    if (double.tryParse(cleanValue) == null ||
+                        double.parse(cleanValue) <= 0) {
                       return 'Harga beli harus berupa angka yang valid';
                     }
                     return null;
@@ -188,14 +317,20 @@ class _TambahDataPageState extends State<TambahDataPage> {
                   decoration: InputDecoration(
                     labelText: 'Harga Jual',
                     border: OutlineInputBorder(),
+                    prefixText: 'Rp ',
                   ),
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    _RupiahInputFormatter(),
+                  ],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Harga jual tidak boleh kosong';
                     }
-                    if (double.tryParse(value) == null ||
-                        double.parse(value) <= 0) {
+                    final cleanValue = value.replaceAll('.', '');
+                    if (double.tryParse(cleanValue) == null ||
+                        double.parse(cleanValue) <= 0) {
                       return 'Harga jual harus berupa angka yang valid';
                     }
                     return null;
@@ -220,26 +355,16 @@ class _TambahDataPageState extends State<TambahDataPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _satuan,
+                TextFormField(
+                  controller: _satuanController,
                   decoration: InputDecoration(
                     labelText: 'Satuan',
                     border: OutlineInputBorder(),
+                    hintText: 'Contoh: pcs, dus, pak, porsi, dll',
                   ),
-                  items: ['Pcs', 'Dus', 'Pak', 'Porsi'].map((String satuan) {
-                    return DropdownMenuItem<String>(
-                      value: satuan,
-                      child: Text(satuan),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _satuan = newValue;
-                    });
-                  },
                   validator: (value) {
-                    if (value == null) {
-                      return 'Satuan harus dipilih';
+                    if (value == null || value.isEmpty) {
+                      return 'Satuan tidak boleh kosong';
                     }
                     return null;
                   },
@@ -293,6 +418,36 @@ class _TambahDataPageState extends State<TambahDataPage> {
     _hargaBeliController.dispose();
     _hargaJualController.dispose();
     _stokController.dispose();
+    _satuanController.dispose();
     super.dispose();
+  }
+}
+
+class _RupiahInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Remove non-digit characters
+    String newText = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (newText.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Format as Rupiah
+    final number = int.parse(newText);
+    final formatted = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: '',
+      decimalDigits: 0,
+    ).format(number);
+
+    return newValue.copyWith(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
   }
 }
